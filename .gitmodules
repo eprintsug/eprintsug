@@ -1,0 +1,135 @@
+[submodule "site_lib"]
+	path = site_lib
+	url = https://github.com/eprintsug/ulcc-site_lib
+[submodule "lib/epm/rioxx2"]
+	path = lib/epm/rioxx2
+	url = https://github.com/eprintsug/rioxx2
+[submodule "gitaar"]
+	path = gitaar
+	url = https://github.com/eprintsug/gitaar
+[submodule "lib/epm/reports"]
+	path = lib/epm/reports
+	url = https://github.com/eprintsug/reports.git
+[submodule "lib/epm/recollect"]
+	path = lib/epm/recollect
+	url = https://github.com/eprintsug/recollect.git
+[submodule "lib/epm/DataCiteDoi"]
+	path = lib/epm/DataCiteDoi
+	url = https://github.com/eprintsug/DataCiteDoi.git
+[submodule "lib/epm/irus"]
+	path = lib/epm/irus
+	url = https://github.com/eprintsug/irus.git
+[submodule "lib/epm/irstats2"]
+	path = lib/epm/irstats2
+	url = https://github.com/eprintsug/irstats2.git
+[submodule "lib/epm/altmetric"]
+	path = lib/epm/altmetric
+	url = https://github.com/eprintsug/altmetric.git
+[submodule "lib/epm/ref2014"]
+	path = lib/epm/ref2014
+	url = https://github.com/eprintsug/ref2014.git
+[submodule "lib/epm/meprints"]
+	path = lib/epm/meprints
+	url = https://github.com/eprintsug/meprints.git
+[submodule "lib/epm/arkivum"]
+	path = lib/epm/arkivum
+	url = https://github.com/eprintsug/arkivum.git
+[submodule "lib/epm/collections"]
+	path = lib/epm/collections
+	url = https://github.com/eprintsug/collections
+[submodule "lib/epm/datesdatesdates"]
+	path = lib/epm/datesdatesdates
+	url = https://github.com/eprintsug/datesdatesdates.git
+[submodule "lib/epm/RepoLink"]
+	path = lib/epm/RepoLink
+	url = https://github.com/eprintsug/RepoLink.git
+[submodule "lib/epm/carousel"]
+	path = lib/epm/carousel
+	url = https://github.com/eprintsug/carousel.git
+[submodule "lib/epm/mapsRecollect"]
+	path = lib/epm/mapsRecollect
+	url = https://github.com/eprintsug/mapsRecollect.git
+[submodule "lib/epm/openoffice"]
+	path = lib/epm/openoffice
+	url = https://github.com/eprintsug/openoffice.git
+[submodule "lib/epm/corewidget"]
+	path = lib/epm/corewidget
+	url = https://github.com/eprintsug/corewidget.git
+[submodule "lib/epm/droid"]
+	path = lib/epm/droid
+	url = https://github.com/eprintsug/droid.git
+[submodule "lib/epm/preservation_toolkit"]
+	path = lib/epm/preservation_toolkit
+	url = https://github.com/eprintsug/preservation_toolkit.git
+[submodule "lib/epm/citation-import"]
+	path = lib/epm/citation-import
+	url = https://github.com/eprintsug/citation-import.git
+[submodule "lib/epm/bootstrap"]
+	path = lib/epm/bootstrap
+	url = https://github.com/eprintsug/bootstrap.git
+[submodule "lib/epm/youtube_import"]
+	path = lib/epm/youtube_import
+	url = https://github.com/eprintsug/youtube_import.git
+[submodule "lib/epm/syrtug"]
+	path = lib/epm/syrtug
+	url = https://github.com/eprintsug/syrtug.git
+[submodule "lib/epm/soundcloud"]
+	path = lib/epm/soundcloud
+	url = https://github.com/eprintsug/soundcloud.git
+[submodule "lib/epm/orcid_support"]
+	path = lib/epm/orcid_support
+	url = https://github.com/eprintsug/orcid_support.git
+[submodule "lib/epm/swordlegacy"]
+	path = lib/epm/swordlegacy
+	url = https://github.com/eprintsug/swordlegacy.git
+[submodule "lib/epm/multiline_excel"]
+	path = lib/epm/multiline_excel
+	url = https://github.com/eprintsug/multiline_excel.git
+[submodule "lib/epm/batchedit-extended"]
+	path = lib/epm/batchedit-extended
+	url = https://github.com/eprintsug/batchedit-extended.git
+[submodule "lib/epm/RJ_Broker_2"]
+	path = lib/epm/RJ_Broker_2
+	url = https://github.com/eprintsug/RJ_Broker_2.git
+[submodule "lib/epm/coversheets-latex"]
+	path = lib/epm/coversheets-latex
+	url = https://github.com/eprintsug/coversheets-latex
+[submodule "lib/epm/oai_uketd_dc"]
+	path = lib/epm/oai_uketd_dc
+	url = https://github.com/eprintsug/oai_uketd_dc.git
+[submodule "lib/epm/pubrouter_rioxx_importer"]
+	path = lib/epm/pubrouter_rioxx_importer
+	url = https://github.com/eprintsug/eprints-plugin-PubRouter-RIOXXplus-Connector.git
+[submodule "lib/epm/ref2021"]
+	path = lib/epm/ref2021
+	url = https://github.com/eprintsug/ref2021.git
+[submodule "lib/epm/orcid_support_advance"]
+	path = lib/epm/orcid_support_advance
+	url = https://github.com/eprints/orcid_support_advance.git
+[submodule "lib/epm/issues2"]
+	path = lib/epm/issues2
+	url = https://github.com/eprintsug/issues2.git
+[submodule "lib/epm/search_results_highlighter"]
+	path = lib/epm/search_results_highlighter
+	url = https://github.com/eprintsug/search_results_highlighter.git
+[submodule "lib/epm/hefce_oa"]
+	path = lib/epm/hefce_oa
+	url = https://github.com/eprintsug/hefce_oa.git
+[submodule "lib/epm/ref_support"]
+	path = lib/epm/ref_support
+	url = https://github.com/eprints/ref_support.git
+[submodule "lib/epm/iiif-manifest"]
+	path = lib/epm/iiif-manifest
+	url = https://github.com/eprintsug/iiif-manifest.git
+[submodule "lib/epm/dorian"]
+	path = lib/epm/dorian
+	url = https://github.com/eprintsug/dorian.git
+[submodule "lib/epm/simply_advanced_searchbar"]
+	path = lib/epm/simply_advanced_searchbar
+	url = https://github.com/eprintsug/simply_advanced_searchbar
+[submodule "lib/epm/simple_portfolio"]
+	path = lib/epm/simple_portfolio
+	url = https://github.com/eprintsug/Simple-Portfolio
+[submodule "lib/epm/funders_advanced"]
+	path = lib/epm/funders_advanced
+	url = https://github.com/eprintsug/funders_advanced.git
