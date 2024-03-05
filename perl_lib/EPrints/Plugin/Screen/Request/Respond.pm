@@ -28,9 +28,27 @@ sub properties_from
 {
 	my( $self ) = @_;
 
-	# Need valid requestid
-	$self->{processor}->{requestid} = $self->{session}->param( "requestid" );
-	$self->{processor}->{request} = new EPrints::DataObj::Request( $self->{session}, $self->{processor}->{requestid} );
+	my $use_pin_security = $self->{session}->config( 'use_request_copy_pin_security' );
+
+	if ( $use_pin_security )
+	{
+		$self->{processor}->{requestpin} = $self->{session}->param( "pin" );
+		$self->{processor}->{request} = EPrints::DataObj::Request::request_with_pin( $self->{session}, $self->{processor}->{requestpin} );
+	}
+
+	if( !defined $self->{processor}->{request} )
+	{
+		# Use the previous, authenticated model. This also
+		# provides a fall-back for requests with a requestid but
+		# not a pin, which may occur during the changeover to the
+		# pin-model.
+		$self->{processor}->{requestid} = $self->{session}->param( "requestid" );
+		$self->{processor}->{request} = new EPrints::DataObj::Request( $self->{session}, $self->{processor}->{requestid} );
+
+		# Disable pin security for this response only
+		$use_pin_security = 0;
+	}	
+
 	if( !defined $self->{processor}->{request} )
 	{
 		&_properties_error;
@@ -46,10 +64,10 @@ sub properties_from
 	$self->{processor}->{contact} = EPrints::DataObj::User->new(
 				$self->{session}, $self->{processor}->{request}->get_value( "userid" ) );
 
-	# Need valid document, eprint and contact
+	# Need valid document, eprint and (when not using pin security) contact
 	if( !defined $self->{processor}->{document} ||
 		!defined $self->{processor}->{eprint} ||
-		!defined $self->{processor}->{contact} )
+		( !defined $self->{processor}->{contact} && !$use_pin_security ) )
 	{
 		&_properties_error;
 		return;
@@ -57,6 +75,8 @@ sub properties_from
 
 	$self->{processor}->{response_sent} = $self->{session}->param( "response_sent" );
 	$self->{processor}->{actionid} = $self->{session}->param( "action" );
+
+	$self->{processor}->{use_pin_security} = $use_pin_security;
 
 	$self->SUPER::properties_from;
 
@@ -73,6 +93,10 @@ sub _properties_error
 sub can_be_viewed
 {
 	my( $self ) = @_;
+
+	# If the pin security model is being used for this response,
+	# anyone with the correct pin can access it.
+	return 1 if $self->{processor}->{use_pin_security};
 
 	# Only the contact user (ie. user listed as contact email at time of request) can process it
 	return $self->{processor}->{contact}->get_id == $self->{processor}->{user}->get_id;
@@ -115,7 +139,7 @@ sub action_confirm
 		"request/response_email:body_$action",
 		eprint => $eprint->render_citation_link,
 		document => $doc->render_value( "main" ),
-		reason => EPrints::Utils::is_set( $reason ) ? $session->make_text( $reason )
+		reason => EPrints::Utils::is_set( $reason ) ? EPrints::Extras::render_paras( $self->{session}, "reason", $reason )
 			: $session->html_phrase( "Plugin/Screen/EPrint/RequestRemoval:reason" ) ) );
 
 	my $result;
@@ -171,7 +195,7 @@ sub action_confirm
 	}
 	else
 	{
-		# Send rejection notice
+		# Send rejection notice and expire request
 		$result = EPrints::Email::send_mail(
 			session => $session,
 			langid => $session->get_langid,
@@ -180,22 +204,29 @@ sub action_confirm
 			message => $mail,
 			sig => $session->html_phrase( "mail_sig" ),
 		);
+		$self->{processor}->{request}->set_value( "expiry_date", EPrints::Time::get_iso_timestamp( time ) );
+		$self->{processor}->{request}->commit;
 	}
 	
 	# Log response event
 	my $history_ds = $session->dataset( "history" );
 	my $user = $self->{processor}->{contact};
-	$history_ds->create_object(
-		$session,
-		{
-			userid =>$user->get_id,
-			actor=>EPrints::Utils::tree_to_utf8( $user->render_description ),
-			datasetid=>"request",
-			objectid=>$self->{processor}->{request}->get_id,
-			action=> "$action\_request",
-			details=>EPrints::Utils::is_set( $reason ) ? $reason : undef,
-		}
-	);
+	my $history_data = {
+		datasetid=>"request",
+		objectid=>$self->{processor}->{request}->get_id,
+		action=> "$action\_request",
+		details=>EPrints::Utils::is_set( $reason ) ? $reason : undef,
+	};
+	if ( defined $user )
+	{
+		$history_data->{userid} = $user->get_id;
+		$history_data->{actor} = EPrints::Utils::tree_to_utf8( $user->render_description );
+	}
+	else
+	{
+		$history_data->{actor} = $self->{processor}->{request}->get_value( 'email' );
+	}
+	$history_ds->create_object( $session, $history_data );
 
 	if( !$result )
 	{
@@ -216,6 +247,10 @@ sub redirect_to_me_url
 	if( defined $self->{processor}->{requestid} )
 	{
 		$url.="&requestid=".$self->{processor}->{requestid};
+	}
+	if( defined $self->{processor}->{requestpin} )
+	{
+		$url.="&pin=".$self->{processor}->{requestpin};
 	}
 	if( defined $self->{processor}->{actionid} )
 	{
@@ -244,9 +279,34 @@ sub render
 	# Requested document has been made OA in the meantime
 	$action = "oa" if $self->{processor}->{document}->is_public;
 
+	my $requested = $self->{processor}->{request}->get_value( "datestamp" );
+
+	# Requests expiry after 90 (or specified) number of days. Otherwise, they expiry after permitted access period or immediately if rejected.
+	my $unresponded_expiry = $session->config( "expiry_for_unresponded_doc_request" );
+	$unresponded_expiry = 90 if( !defined $unresponded_expiry || $unresponded_expiry !~ /^\d+$/ );
+	$unresponded_expiry = EPrints::Time::datetime_local( split( /[- :]/, $requested ) ) + $unresponded_expiry*3600*24;
+	my $expiry_date = $self->{processor}->{request}->get_value( "expiry_date" );
+	my $expiry = $expiry_date ? EPrints::Time::datetime_local( split( /[- :]/, $expiry_date ) ) : 0;
+	if ( time > $unresponded_expiry || ( $expiry && time > $expiry ) )
+	{
+		$page->appendChild( $session->html_phrase( 
+			"request/respond_page:expired",
+			action => $session->make_text( $action ),
+			eprint => $self->{processor}->{eprint}->render_citation_link,
+			document => $self->render_document,
+		) );
+		return $page;
+	}
+
 	if ( EPrints::Utils::is_set( $self->{processor}->{request}->get_value( "code" ) ) )
 	{
-		$page->appendChild( $session->html_phrase( "request/respond_page:already_approved" ) );
+		$page->appendChild( $session->html_phrase( 
+			"request/respond_page:already_approved",
+			action => $session->make_text( $action ),
+			eprint => $self->{processor}->{eprint}->render_citation_link,
+	        document => $self->render_document,
+		) );
+		return $page;
 	}
 
 	$page->appendChild( $session->html_phrase(
@@ -260,7 +320,7 @@ sub render
 	
 	if( $action eq "reject" )
 	{
-		my $textarea = $session->make_element( "textarea", 
+		my $textarea = $session->make_element( "textarea",
 			name => "reason",
 			rows => 5,
 			cols => 60,
@@ -271,26 +331,33 @@ sub render
 
 	# Only display the 'Make this document OA' form if the user
 	# has privilege to edit this document
-	if( $action eq "accept"
-		 && $self->allow( 'eprint/archive/edit', $self->{processor}->{eprint} ) )
+	if( !EPrints::Utils::is_set( $self->{processor}->{request}->get_value( "code" ) ) )
 	{
-		my $p = $session->make_element( "p" );
-		$form->appendChild( $p );
-		my $label = $session->make_element( "label" );
-		my $cb = $session->make_element( "input", type => "checkbox", name => "oa" );
-		$label->appendChild( $cb );
-		$label->appendChild( $session->make_text( " " ));
-		$label->appendChild( $session->html_phrase(
-			"request/respond_page:fieldname_oa" ) );
-		$p->appendChild( $label );
+		if( $action eq "accept"
+			 && $self->allow( 'eprint/archive/edit', $self->{processor}->{eprint} ) )
+		{
+			my $p = $session->make_element( "p" );
+			$form->appendChild( $p );
+			unless ( $session->config( 'disable_make_open_access' ) )
+			{
+				my $label = $session->make_element( "label" );
+				my $cb = $session->make_element( "input", type => "checkbox", name => "oa" );
+				$label->appendChild( $cb );
+				$label->appendChild( $session->make_text( " " ));
+				$label->appendChild( $session->html_phrase(
+					"request/respond_page:fieldname_oa" ) );
+				$p->appendChild( $label );
+			}
+		}
+
+		$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
+		$form->appendChild( $session->render_hidden_field( "requestid", $self->{processor}->{request}->get_id ) );
+		$form->appendChild( $session->render_hidden_field( "pin", $self->{processor}->{requestpin} ) );
+		$form->appendChild( $session->render_hidden_field( "action", $action ) );
+
+		$form->appendChild( $session->make_element( "br" ) );
+		$form->appendChild( $session->render_action_buttons( confirm => $session->phrase( "request/respond_page:action_respond" ) ) );
 	}
-
-	$form->appendChild( $session->render_hidden_field( "screen", $self->{processor}->{screenid} ) );
-	$form->appendChild( $session->render_hidden_field( "requestid", $self->{processor}->{request}->get_id ) );
-	$form->appendChild( $session->render_hidden_field( "action", $action ) );
-
-	$form->appendChild( $session->make_element( "br" ) );
-	$form->appendChild( $session->render_action_buttons( confirm => $session->phrase( "request/respond_page:action_respond" ) ) );
 
 	return $page;
 
@@ -331,16 +398,16 @@ sub render_document
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -357,5 +424,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -56,18 +56,28 @@ sub new
 		$class = "${class}::MSWin32";
 	}
 
-#	$opts{logfile} = EPrints::Index::logfile();
+#	$opts{logfile} = EPrints::Index::logfile();	
 	$opts{pidfile} ||= EPrints::Index::pidfile();
 	$opts{tickfile} ||= EPrints::Index::tickfile();
 	$opts{suicidefile} ||= EPrints::Index::suicidefile();
-	$opts{loglevel} = 1 unless defined $opts{loglevel};
-	$opts{rollcount} = 5 unless defined $opts{rollcount};
+
+	# Get options for SystemSettings if not already set
+	my $settings = $EPrints::SystemSettings::conf->{indexer_daemon};
+	foreach my $setting ( keys %$settings )
+	{
+		$opts{$setting} ||= $settings->{$setting};
+	}
+	
+	# Get options for hardcoded defaults if still not already set
+	$opts{loglevel} ||= 1;
+	$opts{rollcount} ||= 5;
 	$opts{maxwait} ||= 8; # 8 seconds
 	$opts{interval} ||= 30; # 30 seconds
 	$opts{respawn} ||= 86400; # 1 day
 	$opts{timeout} ||= 600; # 10 minutes
+	$opts{interrupt} ||= 0; # break out of any loops
+
 	$opts{nextrespawn} = time() + $opts{respawn};
-	$opts{interrupt} = 0; # break out of any loops
 
 	my $self = bless \%opts, $class;
 
@@ -756,16 +766,16 @@ L<EPrints::Index>
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -782,5 +792,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

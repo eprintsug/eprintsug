@@ -990,6 +990,45 @@ sub clone
 	return $data;			
 }
 
+=item $token = EPrints::Utils::generate_token( [$length] )
+
+Generates a pseudorandom token comprising hexadecimal characters.
+
+The length of the new token is given by the $length parameter; if
+unspecified the default length is 32.
+
+Returns I<undef> if $length is less than 1.
+
+=cut
+
+sub generate_token
+{
+	my( $length ) = @_;
+
+	$length = 32 if !defined $length;
+	if( $length <= 0 )
+	{
+		print STDERR "Unable to generate token: length must be positive ($length given)\n";
+		return undef;
+	}
+
+	# If Session::Token is available, use that to generate the token.
+	if( require_if_exists( 'Session::Token' ) )
+	{
+		return Session::Token->new( length => $length )->get();
+	}
+	# Otherwise, fall back to a simple rand()-based mechanism
+	else
+	{
+		my @a = ();
+		my $n = int( ($length + 1) / 2 );
+		srand;
+		for(1..$n) { push @a, sprintf( '%02X', int rand 256 ); }
+		my $token = join( '', @a );
+		return substr( $token, 0, $length );
+	}
+}
+
 # crypt_password( $value, $session )
 sub crypt_password { 
 	
@@ -1017,42 +1056,60 @@ sub crypt
 	return undef if !EPrints::Utils::is_set( $value );
 
 	# backwards compatibility
-	if( UNIVERSAL::isa( $method, "EPrints::Repository" ) ) {
+	if( UNIVERSAL::isa( $method, "EPrints::Repository" ) ) 
+	{
 		$method = EP_CRYPT_CRYPT;
 	}
-	elsif( !defined $method ) {
-		$method = EP_CRYPT_SHA512;
+	elsif( !defined $method ) 
+	{
+		if ( require_if_exists( 'Crypt::Eksblowfish::Bcrypt' ) && require_if_exists( 'Data::Entropy::Algorithms' ) )
+		{
+			$method = EP_CRYPT_BCRYPT;
+		}
+		else
+		{
+			$method = EP_CRYPT_SHA512;
+		}
 	}
 
-	srand;
-	my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
-	my $salt = join '', @saltset[
-			int(rand(scalar(@saltset))),
-			int(rand(scalar(@saltset)))
-		];
-
-	if( $method eq EP_CRYPT_SHA512 )
+	my $salt;
+	# EP_CRYPT_BCRYPT generates salt inside _crypt_bcrypt method.
+	if ( $method == EP_CRYPT_BCRYPT && require_if_exists( 'Crypt::Eksblowfish::Bcrypt' ) && require_if_exists( 'Data::Entropy::Algorithms' ) )
 	{
-		# calculate the sha512 of the salt + value (avoids two identical
-		# passwords resulting in the same hash)
-		my $crypt = Digest::SHA::sha512( $salt . $value );
-
-		# repeatedly calculate the hash, which makes it computationally
-		# expensive to brute-force the resulting hash
-		my $rounds = 10000;
-		while(--$rounds) {
-			$crypt = Digest::SHA::sha512( $crypt );
-		}
-		# once more + hex to get $rounds in total
-		$crypt = Digest::SHA::sha512_hex( $crypt );
-
-		# store the crypt as a URI for easy serialisation
-		my $uri = URI->new;
-		$uri->query_form(
-			method => EP_CRYPT_SHA512,
-			salt => $salt,
-			digest => $crypt,
+		$salt = undef;
+	}
+	else
+	{
+		srand;
+		my @saltset = ('a'..'z', 'A'..'Z', '0'..'9', '.', '/');
+		$salt = join(
+			'', 
+			@saltset[
+				int(rand(scalar(@saltset))),
+				int(rand(scalar(@saltset)))
+			],
 		);
+	}
+
+	use constant CRYPTS => [ EP_CRYPT_BCRYPT, EP_CRYPT_SHA512 ];
+	my $crypts = CRYPTS;
+	if( grep { $method eq $_ } @$crypts )
+	{
+		
+		my ( $crypt, %params );
+		if( $method eq EP_CRYPT_BCRYPT )
+		{
+			$crypt = _crypt_bcrypt( $salt,  $value );
+			%params = ( method => $method, digest => $crypt );
+		}
+		else
+		{
+			$crypt = _crypt_sha512( $salt,  $value );
+			%params = ( method => $method, salt => $salt, digest => $crypt );
+		}
+
+		my $uri = URI->new;
+		$uri->query_form( %params );
 
 		return "$uri";
 	}
@@ -1085,21 +1142,81 @@ sub crypt_equals
 	my %q = URI->new( $crypt )->query_form;
 	( my $method, my $salt, $crypt ) = @q{ qw( method salt digest ) };
 
+	my $hash;
 	if( $method eq EP_CRYPT_SHA512 )
 	{
-		my $digest = Digest::SHA::sha512( $salt . $value );
-
-		my $rounds = 10000;
-		while(--$rounds) {
-			$digest = Digest::SHA::sha512( $digest );
-		}
-		$digest = Digest::SHA::sha512_hex( $digest );
-
-		return $crypt eq $digest;
+		$hash = _crypt_sha512( $salt, $value );
+	}
+	elsif ( $method eq EP_CRYPT_BCRYPT && require_if_exists( 'Crypt::Eksblowfish::Bcrypt' ) && require_if_exists( 'Data::Entropy::Algorithms' ) )
+	{
+		$hash = Crypt::Eksblowfish::Bcrypt::bcrypt( $value, $crypt );
+	}
+	elsif ( $method eq EP_CRYPT_BCRYPT_REHASH && require_if_exists( 'Crypt::Eksblowfish::Bcrypt' ) && require_if_exists( 'Data::Entropy::Algorithms' ) )
+	{
+		my $init_hash = _crypt_sha512( $salt, $value );
+		$hash = Crypt::Eksblowfish::Bcrypt::bcrypt( $init_hash, $crypt );
 	}
 
-	EPrints->abort( "Unsupported or unknown crypt method: $method" );
+	EPrints->abort( "Unsupported or unknown crypt method: $method or Crypt::Eksblowfish::Bcrypt and/or Data::Entropy::Algorithms module(s) not available." ) unless defined $hash;
+
+	return $crypt eq $hash;
+
 }
+
+sub bcrypt_rehash
+{
+	my ( $method, $salt, $crypt ) = @_;
+
+	if( $method eq EP_CRYPT_SHA512 )
+	{
+		if ( require_if_exists( 'Crypt::Eksblowfish::Bcrypt' ) && require_if_exists( 'Data::Entropy::Algorithms' ) )
+		{
+			my $new_crypt = _crypt_bcrypt( $salt, $crypt );			
+			my %params = ( method => EP_CRYPT_BCRYPT_REHASH, salt => $salt, digest => $new_crypt );
+			my $uri = URI->new;
+	        $uri->query_form( %params );
+			return $uri;
+		}
+		EPrints->abort( "Crypt::Eksblowfish::Bcrypt and/or Data::Entropy::Algorithms module(s) not available." );
+	}
+	EPrints->abort( "Crypt method: $method cannot be rehashed using bcrypt.");
+}
+
+sub _crypt_sha512
+{
+	my ( $salt, $value ) = @_;
+
+	my $digest = Digest::SHA::sha512( $salt . $value );
+
+	my $rounds = 10000;
+	while(--$rounds) {
+	    $digest = Digest::SHA::sha512( $digest );
+	}
+	$digest = Digest::SHA::sha512_hex( $digest );
+
+	return $digest;
+}
+
+sub _crypt_bcrypt
+{
+	my ( $unused, $value ) = @_;
+	
+	my $salt = Data::Entropy::Algorithms::rand_bits(16*8);
+	my $cost = 12;
+
+	my $settings = {
+		key_nul => 1,
+		cost => $cost,
+		salt => $salt,
+	};
+	
+	my $hash = Crypt::Eksblowfish::Bcrypt::bcrypt_hash( $settings, $value );
+
+	my $bcrypt_hash = "\$2a\$$cost\$" . Crypt::Eksblowfish::Bcrypt::en_base64( $salt ) . Crypt::Eksblowfish::Bcrypt::en_base64( $hash );
+
+	return $bcrypt_hash;
+}
+
 
 # Escape everything AFTER the last /
 
@@ -1396,6 +1513,16 @@ sub mtime
 	return $filestat[9];
 }
 
+# Return whether directory is empty
+
+sub is_empty_dir 
+{
+	my( $dir ) = @_;
+
+	opendir(my $dh, $dir) or return 0;
+	return scalar(grep { $_ ne "." && $_ ne ".." } readdir($dh)) == 0;
+}
+
 
 # return a quoted string safe to go in javascript
 
@@ -1538,6 +1665,14 @@ sub validate_email
 	my ( $email ) = @_;
 
 	return defined $email && $email =~ m/^[a-zA-Z0-9.!#$%&’*+i\/=\?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+}
+
+sub sanitise_element_id
+{
+	my ( $id ) = @_;
+
+	$id =~ s/[^a-zA-Z0-9_]/_/g;
+	return $id;
 }
 
 1;

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Compound;
+# EPrints::MetaField::Compound
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -121,6 +123,7 @@ sub render_value_actual
 		my $tr = $session->make_element( "div", "class"=>"ep_compound_header_row" );
 		$table->appendChild( $tr );
 		my $f = $self->get_property( "fields_cache" );
+		my $index = 0;
 		foreach my $field_conf ( @{$f} )
 		{
 			my $fieldname = $field_conf->{name};
@@ -128,11 +131,11 @@ sub render_value_actual
 			if (
 				   ( $self->get_property( "multiple" ) && exists @{$value}[0]->{$subfieldname} )
 				|| ( !$self->get_property( "multiple" ) && exists $value->{$subfieldname} )
-				|| !$field_conf->{render_quiet}
+				|| !$field_conf->{render_column_quiet}
 			)
 			{
 				my $field = $self->{dataset}->get_field( $fieldname );
-				my $th = $session->make_element( "div", class=>"ep_compound_header_cell" );
+				my $th = $session->make_element( "div", class=>"ep_compound_header_cell", "data-row-cell-index"=>$index );
 				$tr->appendChild( $th );
 				$th->appendChild( $field->render_name( $session ) );
 			}
@@ -140,14 +143,16 @@ sub render_value_actual
 	
 		if( $self->get_property( "multiple" ) )
 		{
+			$index = 0;
 			foreach my $row ( @{$value} )
 			{
-				$table->appendChild( $self->render_single_value_row( $session, $row, $alllangs, $nolink, $object ) );
+				$table->appendChild( $self->render_single_value_row( $session, $row, $alllangs, $nolink, $object, $index ) );
+				$index++;
 			}
 		}
 		else
 		{
-			$table->appendChild( $self->render_single_value_row( $session, $value, $alllangs, $nolink, $object ) );
+			$table->appendChild( $self->render_single_value_row( $session, $value, $alllangs, $nolink, $object, undef ) );
 		}
 
 		$result = $table;
@@ -203,16 +208,25 @@ sub render_value_actual
 
 sub render_single_value_row
 {
-	my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
+	my( $self, $session, $value, $alllangs, $nolink, $object, $index ) = @_;
 
-	my $tr = $session->make_element( "div", "class"=>"ep_compound_data_row" );
+	my $tr;
+	if ( defined $index )
+	{
+		$tr = $session->make_element( "div", "class"=>"ep_compound_data_row", "data-row-index"=>$index );
+	}
+	else
+	{
+		$tr = $session->make_element( "div", "class"=>"ep_compound_data_row" );
+	}
 
+	my $i = 0;
 	foreach my $field (@{$self->{fields_cache}})
 	{
 		my $alias = $field->property( "sub_name" );
-		if ( exists $value->{$alias} || !$field->property( "render_quiet" ) )
+		if ( exists $value->{$alias} || !$field->property( "render_column_quiet" ) )
                 {
-			my $td = $session->make_element( "div" );
+			my $td = $session->make_element( "div", "class"=>"ep_compound_data_row_cell", "data-row-cell-index"=>$i );
 			$tr->appendChild( $td );
 			$td->appendChild( 
 				$field->render_value_no_multiple( 
@@ -221,6 +235,7 @@ sub render_single_value_row
 					$alllangs,
 					$nolink,
 					$object ) );
+			$i++;
 		}
 	}
 
@@ -232,7 +247,7 @@ sub render_single_value
 	my( $self, $session, $value, $object ) = @_;
 
 	my $table = $session->make_element( "div", class=>"ep_compound_single" );
-	$table->appendChild( $self->render_single_value_row( $session, $value, $object ) );
+	$table->appendChild( $self->render_single_value_row( $session, $value, $object, undef ) );
 	return $table;
 }
 
@@ -475,7 +490,7 @@ sub get_input_col_titles
 	foreach my $field ( @{$f} )
 	{
 		my $fieldname = $field->get_name;
-		my $sub_r = $field->get_input_col_titles( $session, $staff );
+		my $sub_r = $field->get_input_col_titles( $session, $staff, 1 );
 
 		if( !defined $sub_r )
 		{
@@ -589,8 +604,6 @@ sub get_property_defaults
 	$defaults{fields} = $EPrints::MetaField::REQUIRED;
 	$defaults{fields_cache} = $EPrints::MetaField::REQUIRED;
 	$defaults{show_in_fieldlist} = 0;
-	$defaults{export_as_xml} = 1;
-	$defaults{text_index} = 0;
 	return %defaults;
 }
 
@@ -705,16 +718,16 @@ sub get_id_from_value
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -731,5 +744,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

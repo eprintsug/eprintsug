@@ -829,7 +829,7 @@ sub close_non_current_login_tickets
 	my ($self) = @_;
 
 	my $repo = $self->repository;
-	my $current_ticket = $repo->current_loginticket;
+	my $current_ticket = defined $repo->get_request ? $repo->current_loginticket : undef;
 
 	my $ticket_ds = $repo->dataset('loginticket');
 
@@ -842,7 +842,7 @@ sub close_non_current_login_tickets
 		{
 			my ($repo, $ds, $ticket, $current_ticket) = @_;
 
-			if ($ticket->value('code') ne $current_ticket->value('code'))
+			if (!defined $current_ticket || $ticket->value('code') ne $current_ticket->value('code'))
 			{
 				$ticket->remove;
 			}
@@ -1102,6 +1102,10 @@ sub mail
 	{
 		$email = $self->get_value( "email" );
 	}
+
+	# Sometimes users do not have associated email addresses. bin scripts don't need to be told this.
+	use English qw<$PROGRAM_NAME>;
+	return 0 if !EPrints::Utils::is_set( $email ) && $PROGRAM_NAME =~ m/\/bin\//;
 
 	return EPrints::Email::send_mail(
 		session  => $self->{session},

@@ -182,7 +182,7 @@ sub get_defaults
 
 	$data->{code} = &_code();
 	$data->{securecode} = &_code();
-	if( !$repo->config( "ignore_login_ip" ) )
+	if( !$repo->config( "ignore_login_ip" ) && !$repo->config( "securehost" ) )
 	{
 		$data->{ip} = $repo->remote_ip;
 	}
@@ -239,7 +239,7 @@ sub new_from_request
 			])->item( 0 );
 		}
 	}
-	else
+	elsif( !$repo->config( 'securehost' ) )
 	{
 		my $code = EPrints::Apache::AnApache::cookie(
 			$r,
@@ -377,6 +377,7 @@ sub generate_cookie
 		-path    => ($repo->config( "rel_path" ) || '/'),
 		-value   => $self->value( "code" ),
 		-domain  => $domain,
+		-samesite => 'Strict',
 		-expires => $repo->config( "user_cookie_timeout" ),
 		%opts,
 	);			
@@ -406,7 +407,7 @@ sub generate_secure_cookie
 		-value   => $self->value( "securecode" ),
 		-domain  => $repo->config( "securehost" ),
 		-secure  => 1,
-		-samesite => 'None',
+		-samesite => 'Strict',
 		-expires => $repo->config( "user_cookie_timeout" ),
 		%opts,
 	);			
@@ -429,13 +430,16 @@ sub set_cookies
 
 	my $repo = $self->{session};
 
-	$repo->get_request->err_headers_out->add(
-		'Set-Cookie' => $self->generate_cookie
-	);
 	if( $repo->config( "securehost" ) )
 	{
 		$repo->get_request->err_headers_out->add(
 			'Set-Cookie' => $self->generate_secure_cookie
+		);
+	}
+	else
+	{
+		$repo->get_request->err_headers_out->add(
+			'Set-Cookie' => $self->generate_cookie
 		);
 	}
 }
@@ -479,7 +483,7 @@ L<EPrints::DataObj> and L<EPrints::DataSet>.
 
 =begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

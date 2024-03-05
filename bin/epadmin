@@ -140,7 +140,7 @@ This erases all the .words and .indexcodes cache files from your repository, for
 
 This is useful if you only setup the fulltext indexing after your repository is already live, or if you discover there has been a problem.
 
-=item B<epadmin> rebuild_triples I<repository_id> [I<dataset_id> [I<dataobj_id> I<dataobj_id> I<dataobj_id>-I<dataobj_id> ...]]
+=item B<epadmin> rebuild_triples I<repository_id> [I<dataset_id> [I<dataobj_id> I<dataobj_id> I<dataobj_id>-I<dataobj_id> ...]
 
 Queue all the records to have their RDF triple cache rebuilt. This may tie-up the indexer for some time on a large repository. Do this if you have made changes to the way RDF triples are produced from an EPrint. If a list of data object IDs are given then just rebuild triples for those. If an data object ID range is given (e.g. 10-20), then rebuild triples all existing items in that range.
 
@@ -150,7 +150,7 @@ Recommit all the records in the given dataset. What this does is cause the autom
 
 =item B<epadmin> reindex I<repository_id> I<dataset_id> [I<dataobj_id> I<dataobj_id> I<dataobj_id>-I<dataobj_id> ...]
 
-Schedule the dataset for reindexing. The indexer will do the actual indexing and it may take some time. This only schedules the reindexing. If a list of data object IDs is given then just reindex those. If a data object ID range is given (e.g. 10-20), then reindex all existing data objects in that range.
+Re-index all items in a dataset. (This could take some time). If a list of data object IDs is given then just re-index those. If a data object ID range is given (e.g. 10-20), then re-index all existing data objects in that range. If C<--force> is included for the eprint or document datasets, all associated .indexcodes cache files will be regenerated before re-indexing.
 
 =item B<epadmin> reorder I<repository_id> I<dataset_id> [I<dataobj_id> I<dataobj_id> I<dataobj_id>-I<dataobj_id> ...]
 
@@ -889,9 +889,10 @@ END
 			$config{adminemail}, 
 		],
 		[qw/
-			$c->{adminemail} 
+			$c->{adminemail}
 		/]
 	);
+	print AEMAIL "\n# To set a different address for sending email from the repository.\n#\$c->{senderemail} = '$config{adminemail}';";
 	close AEMAIL;
 	print "Wrote $aemailfile\n";
 
@@ -1258,12 +1259,12 @@ sub create_user
 		if( $noise >= 1 )
 		{
 			print "Successfully created new user:\n";
-			print "       ID: ".$new_user->get_value( "userid" )."\n";
+			print "  ID: ".$new_user->get_value( "userid" )."\n";
 		}
 		if( $noise >= 2 )
 		{
-			print " Username: ".$new_user->get_value( "username" )."\n";
-			print "     Type: ".$new_user->get_value( "usertype" )."\n";
+			print "  Username: ".$new_user->get_value( "username" )."\n";
+			print "  Type: ".$new_user->get_value( "usertype" )."\n";
 		}
 	}
 	else
@@ -1275,83 +1276,83 @@ sub create_user
 
 sub redo_hash
 {
-    my( $repoid, $datasetid, @ids ) = @_;
+	my( $repoid, $datasetid, @ids ) = @_;
 
 	my $repo = &repository( $repoid );
 
-    die "Missing dataset argument\n" if !defined $datasetid;
-    die "Dataset must be one of 'document', 'eprint' or 'file'\n"
-        if $datasetid !~ /^document|eprint|file$/;
+	die "Missing dataset argument\n" if !defined $datasetid;
+	die "Dataset must be one of 'document', 'eprint' or 'file'\n"
+		if $datasetid !~ /^document|eprint|file$/;
 
-    my $dataset = $repo->dataset( $datasetid );
+	my $dataset = $repo->dataset( $datasetid );
 
 	my $list;
-    if ( @ids )
-    {
-        @ids = expand_ids( $repo, $dataset, @ids );
-        $list = $dataset->list( \@ids );
-    }
-    else
-    {
-        $list = $dataset->search;
-    }
+	if ( @ids )
+	{
+		@ids = expand_ids( $repo, $dataset, @ids );
+		$list = $dataset->list( \@ids );
+	}
+	else
+	{
+		$list = $dataset->search;
+	}
 
-    my $i = 0;
-    my $f;
+	my $i = 0;
+	my $f;
 
 	if( $datasetid eq "eprint" )
 	{
 		$f = sub {
-            (undef, undef, my $eprint) = @_;
+			(undef, undef, my $eprint) = @_;
 
-            if( $noise >= 2 )
-            {
-                print "[" . ++$i . "/" . $list->count . "] Redoing hashes for files for eprint with eprintid: ".$eprint->id."\n";
-            }
-            else
-            {
-                print STDERR sprintf("%.0f%%\r",
-                    100 * $i++ / $list->count
-                );
-            }
+			if( $noise >= 2 )
+			{
+				print "[" . ++$i . "/" . $list->count . "] Redoing hashes for files for eprint with eprintid: ".$eprint->id."\n";
+			}
+			else
+			{
+				print STDERR sprintf("%.0f%%\r",
+					100 * $i++ / $list->count
+				);
+			}
 
 			foreach my $doc ( @{$eprint->get_value( 'documents' )} )
 			{
 				print "  Redoing hashes for files for document with docid: ".$doc->id."\n" if $noise >= 2;	
-	            my $file_ds = $repo->dataset( 'file' );
-    	        my $searchexp = new EPrints::Search(
-        	        session=>$repo,
-            	    dataset=>$file_ds );
-	            $searchexp->add_field( $file_ds->get_field( 'datasetid' ), 'document' );
-    	        $searchexp->add_field( $file_ds->get_field( 'objectid' ), $doc->id );
-        	    my $files = $searchexp->perform_search;
+				my $file_ds = $repo->dataset( 'file' );
+				my $searchexp = new EPrints::Search(
+					session=>$repo,
+					dataset=>$file_ds );
+				$searchexp->add_field( $file_ds->get_field( 'datasetid' ), 'document' );
+				$searchexp->add_field( $file_ds->get_field( 'objectid' ), $doc->id );
+				my $files = $searchexp->perform_search;
 
-	            foreach my $fileid ( @{$files->ids} )
-    	        {
-        	        my $file = $file_ds->dataobj( $fileid );
-            	    print "    Redoing hash for file with fileid: ".$file->id."\n" if $noise >= 2;
+				foreach my $fileid ( @{$files->ids} )
+				{
+					my $file = $file_ds->dataobj( $fileid );
+					print "    Redoing hash for file with fileid: ".$file->id."\n" if $noise >= 2;
 					$file->set_value( 'filesize', -s $file->get_local_copy );
-                	$file->update_md5;
-                	$file->commit;
-            	}
+					$file->update_md5;
+					$file->commit;
+				}
 			}
-        };	
+		};	
 	}
-    elsif( $datasetid eq "document" )
-    {
-        $f = sub {
-            (undef, undef, my $doc) = @_;
+	elsif( $datasetid eq "document" )
+	{
+		$f = sub {
+			(undef, undef, my $doc) = @_;
 
 			if( $noise >= 2 )
-            {
-                print "[" . ++$i . "/" . $list->count . "] Redoing hashes for files for document with docid: ".$doc->id."\n";
-            }
-            else
-            {
-                print STDERR sprintf("%.0f%%\r",
-                    100 * $i++ / $list->count
-                );
-            }
+			{
+				print "[" . ++$i . "/" . $list->count . "] Redoing hashes for files for document with docid: ".$doc->id."\n";
+			}
+			else
+			{
+				print STDERR sprintf("%.0f%%\r",
+					100 * $i++ / $list->count
+				);
+			}
 
 			my $file_ds = $repo->dataset( 'file' );
 			my $searchexp = new EPrints::Search(
@@ -1369,12 +1370,12 @@ sub redo_hash
 				$file->update_md5;
 				$file->commit;
 			}
-        };
+		};
 	}
 	else
 	{
 		$f = sub {
-            (undef, undef, my $file) = @_;
+			(undef, undef, my $file) = @_;
 
 			if( $noise >= 2 )
 			{	
@@ -1382,9 +1383,9 @@ sub redo_hash
 			}
 			else 
 			{
-	            print STDERR sprintf("%.0f%%\r",
-    	            100 * $i++ / $list->count
-        	    );
+				print STDERR sprintf("%.0f%%\r",
+					100 * $i++ / $list->count
+				);
 			}
 
 			$file->set_value( 'filesize', -s $file->get_local_copy );
@@ -1424,52 +1425,52 @@ sub redo_mime_type
 	if( $datasetid eq "eprint" )
 	{
 		$f = sub {
-            (undef, undef, my $eprint) = @_;
+			(undef, undef, my $eprint) = @_;
 
-            if ( $noise >= 2 )
-            {
-                print "[" . ++$i . "/" . $list->count . "] Redoing MIME types for document main files for eprint with eprintid: ".$eprint->id."\n";
-            }
-            else
-            {
-                print STDERR sprintf("%.0f%%\r",
-                    100 * $i++ / $list->count
-                );
-            }
+			if ( $noise >= 2 )
+			{
+				print "[" . ++$i . "/" . $list->count . "] Redoing MIME types for document main files for eprint with eprintid: ".$eprint->id."\n";
+			}
+			else
+			{
+				print STDERR sprintf("%.0f%%\r",
+					100 * $i++ / $list->count
+				);
+			}
 
 			foreach my $doc ( @{$eprint->get_value( 'documents' )} )
 			{
 				print "  Redoing MIME type for main file for document with docid: ".$doc->id."\n" if $noise >= 2;
 			
-            	my( $file ) = $doc->stored_file( $doc->value( "main" ) );
-	            next if !defined $file;
+				my( $file ) = $doc->stored_file( $doc->value( "main" ) );
+				next if !defined $file;
 
-	            my $fh = $file->get_local_copy;
-    	        next if !defined $fh;
+				my $fh = $file->get_local_copy;
+				next if !defined $fh;
 
-	            $repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
-    	            filename => "$fh",
-        	        filepath => "$fh",
-            	    epdata => my $media_info = {},
-            	);
+				$repo->run_trigger( EPrints::Const::EP_TRIGGER_MEDIA_INFO,
+					filename => "$fh",
+					filepath => "$fh",
+					epdata => my $media_info = {},
+				);
 
-            	foreach my $fieldid (keys %$media_info)
-            	{
-                	next if !$dataset->has_field( $fieldid );
-	                $doc->set_value( $fieldid, $media_info->{$fieldid} );
-    	        }
-        	    $file->set_value( "mime_type", $media_info->{mime_type} );
+				foreach my $fieldid (keys %$media_info)
+				{
+					next if !$dataset->has_field( $fieldid );
+					$doc->set_value( $fieldid, $media_info->{$fieldid} );
+				}
+				$file->set_value( "mime_type", $media_info->{mime_type} );
 
-            	# hide volatiles from the search interface (sort of)
-	            if( $doc->has_relation( undef, "isVolatileVersionOf" ) )
-    	        {
-        	        $doc->set_value( "format", "other" );
-            	}
+				# hide volatiles from the search interface (sort of)
+				if( $doc->has_relation( undef, "isVolatileVersionOf" ) )
+				{
+					$doc->set_value( "format", "other" );
+				}
 
-	            $file->commit;
-    	        $doc->commit;
+				$file->commit;
+				$doc->commit;
 			}
-        };	
+		};	
 	}
 	elsif( $datasetid eq "document" )
 	{
@@ -1522,15 +1523,15 @@ sub redo_mime_type
 			(undef, undef, my $file) = @_;
 
 			if ( $noise >= 2 )
-            {
-                print "[" . ++$i . "/" . $list->count . "] Redoing MIME type for file with fileid: ".$file->id."\n";
-            }
-            else
-            {
-                print STDERR sprintf("%.0f%%\r",
-                    100 * $i++ / $list->count
-                );
-            }
+			{
+				print "[" . ++$i . "/" . $list->count . "] Redoing MIME type for file with fileid: ".$file->id."\n";
+			}
+			else
+			{
+				print STDERR sprintf("%.0f%%\r",
+					100 * $i++ / $list->count
+				);
+			}
 
 			my $fh = $file->get_local_copy;
 			return if !defined $fh;
@@ -1563,8 +1564,15 @@ sub redo_thumbnails
 			print "Redoing thumbnails for document ".$doc->id."\n";
 		}
 
-		$doc->remove_thumbnails; #ouch!
-		$doc->make_thumbnails;
+		if ( $doc->parent )
+		{
+			$doc->remove_thumbnails; #ouch!
+			$doc->make_thumbnails;
+		}
+		else
+		{
+			print STDERR "No such eprint for document '".$doc->id."'\n";
+		}
 	};
 
 	my $dataset = $repo->dataset( "document" );
@@ -2293,6 +2301,22 @@ sub reindex
 	$list->map(sub {
 		my( undef, $dataset, $item ) = @_;
 	
+		if ( $force )
+		{
+			if ( $dataset->id() eq "eprint" )
+			{
+				foreach my $doc ( $item->get_all_documents )
+				{
+					$doc->remove_indexcodes;
+				}
+			}
+			elsif ( $dataset->id() eq "document" )
+			{
+				$item->remove_indexcodes;
+				$item->make_indexcodes;
+			}
+		}
+
 		$indexer->index_all( $item );
 
 		if( $noise >= 2 )
@@ -3576,7 +3600,7 @@ sub upgrade_3_3_3_to_3_3_4
 
 =for COPYRIGHT BEGIN
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

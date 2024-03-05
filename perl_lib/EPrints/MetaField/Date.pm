@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Date;
+# EPrints::MetaField::Date
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -138,9 +140,18 @@ sub _month_names
 	my $month;
 	foreach $month ( @EPrints::MetaField::Date::MONTHKEYS )
 	{
-		$months->{$month} = EPrints::Time::get_month_label( 
-			$session, 
-			$month );
+		if ( $self->{input_style} eq "short" )
+		{
+			$months->{$month} = EPrints::Time::short_month_label( 
+				$session, 
+				$month );
+		}
+		else
+		{
+			$months->{$month} = EPrints::Time::month_label(
+				$session,
+				$month );
+		}
 	}
 
 	return $months;
@@ -201,25 +212,25 @@ sub get_basic_input_elements
 
 	$div->appendChild( $session->make_text(" ") );
 
-	my $mlabel = $session->make_element( "label", for=>$monthid );
+	my $mlabel = $session->make_element( "label" );
 	$mlabel->appendChild( 
 		$session->html_phrase( "lib/metafield:month" ) );
-	$div->appendChild( $mlabel );
-	$div->appendChild( $session->make_text(" ") );
-	$div->appendChild( $session->render_option_list(
+	
+	$mlabel->appendChild( $session->make_text(" ") );
+	$mlabel->appendChild( $session->render_option_list(
 		name => $monthid,
 		id => $monthid,
 		values => \@EPrints::MetaField::Date::MONTHKEYS,
 		default => $month,
 		labels => $self->_month_names( $session ) ) );
+	$div->appendChild( $mlabel );
 
 	$div->appendChild( $session->make_text(" ") );
 
-	my $dlabel = $session->make_element( "label", for=>$dayid );
+	my $dlabel = $session->make_element( "label" );
 	$dlabel->appendChild( 
 		$session->html_phrase( "lib/metafield:day" ) );
-	$div->appendChild( $dlabel );
-	$div->appendChild( $session->make_text(" ") );
+	$dlabel->appendChild( $session->make_text(" ") );
 	my @daykeys = ();
 	my %daylabels = ();
 	for( 0..31 )
@@ -228,12 +239,13 @@ sub get_basic_input_elements
 		push @daykeys, $key;
 		$daylabels{$key} = ($_==0?"?":$key);
 	}
-	$div->appendChild( $session->render_option_list(
+	$dlabel->appendChild( $session->render_option_list(
 		name => $dayid,
 		id => $dayid,
 		values => \@daykeys,
 		default => $day,
 		labels => \%daylabels ) );
+	$div->appendChild( $dlabel );
 
 	$frag->appendChild( $div );
 	
@@ -256,7 +268,7 @@ sub form_value_basic
 	for(qw( year month day ))
 	{
 		my $part = $session->param( $basename."_$_" );
-		last if !EPrints::Utils::is_set( $part ) || $part == 0;
+		last if !EPrints::Utils::is_set( $part ) || $part =~ m/[^0-9]/ || $part == 0;
 		push @parts, $part;
 	}
 
@@ -444,7 +456,7 @@ sub get_property_defaults
 	$defaults{min_resolution} = "day";
 	$defaults{render_res} = "day";
 	$defaults{render_style} = "long";
-	$defaults{text_index} = 0;
+	$defaults{input_style} = "long";
 	$defaults{regexp} = qr/\d\d\d\d(?:-\d\d(?:-\d\d)?)?/;
 	return %defaults;
 }
@@ -574,16 +586,16 @@ sub render_xml_schema_type
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -600,5 +612,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

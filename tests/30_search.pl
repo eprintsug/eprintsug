@@ -328,9 +328,6 @@ $list = $searchexp->perform_search;
 # name isn't set in test data set
 ok(1, "query eprint by user name");
 
-SKIP: {
-skip "No support for arbitrary dataset joins yet", 1..1;
-
 $searchexp = EPrints::Search->new(
 	session => $session,
 	dataset => $sample_doc->get_dataset,
@@ -342,7 +339,6 @@ $searchexp->add_field( $file_dataset->get_field( "mime_type" ), "application/pdf
 $list = $searchexp->perform_search;
 
 ok($list->count > 0, "documents.file.mime_type/satisfy_all => 0");
-};
 
 $searchexp = EPrints::Search->new(
     session => $session,
@@ -456,16 +452,16 @@ sub sql
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=begin COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -482,5 +478,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

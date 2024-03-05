@@ -28,7 +28,7 @@ sub new
 
 	# http://www.crossref.org/openurl - original url, valid up to feb 2017
 	# https://doi.crossref.org/openurl - current preferred url, but below code does not support https
-	$self->{ base_url } = "http://doi.crossref.org/openurl";
+	$self->{ base_url } = "https://doi.crossref.org/openurl";
 
 	return $self;
 }
@@ -624,7 +624,7 @@ sub url_encode
 
 =for COPYRIGHT BEGIN
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

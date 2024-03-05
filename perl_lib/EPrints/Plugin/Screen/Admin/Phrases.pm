@@ -326,7 +326,7 @@ sub redirect_to_me_url
 
 sub render_action_link
 {
-	my( $self ) = @_;
+	my( $self, %opts ) = @_;
 
 	my $uri = $self->{session}->current_url(
 			scheme => "https",
@@ -338,7 +338,8 @@ sub render_action_link
 		edit_phrases => "yes"
 	);
 
-	my $link = $self->{session}->render_link( $uri );
+        $opts{class} = defined $opts{class} ? $opts{class} : "ep_tm_key_tools_item_link";
+	my $link = $self->{session}->render_link( $uri, undef, %opts );
 	$link->appendChild(
 		$self->{session}->html_phrase( "lib/session:edit_phrases" )
 	);
@@ -489,7 +490,7 @@ sub render_row
 
 	$tr = $session->make_element( "tr", class => "ep_phraseedit_$src" );
 
-	$td = $session->make_element( "td", id => "ep_phraseedit_".$phraseid."_label" );
+	$td = $session->make_element( "td", id => "ep_phraseedit_".$phraseid."__label" );
 	$tr->appendChild( $td );
 	$td->appendChild( $session->make_text( $phraseid ) );
 

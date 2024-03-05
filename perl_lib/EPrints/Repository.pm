@@ -434,44 +434,54 @@ client. This will not return the IP of any Proxy/load balancer in-between.
 
 sub remote_ip
 {
-        my( $self ) = @_;
+	my( $self ) = @_;
 
-        # need an HTTP request...
-        return if $self->{offline};
+	# need an HTTP request...
+	return if $self->{offline};
 
-        my $r = $self->get_request;
+	my $r = $self->get_request;
 
-        return if !$r;
+	return if !$r;
 
-        # Proxy has set the "X-Forwarded-For" HTTP header?
-        my $ip = $r->headers_in->{"X-Forwarded-For"};
+	# Proxy has set the "X-Forwarded-For" HTTP header?
+	my $ip = $r->headers_in->{"X-Forwarded-For"};
 
-        # Sanitise and clean up $ip from XFF, if any.
-        if( EPrints::Utils::is_set( $ip ) )
-        {
-                # sanitise: remove lead commas and all whitespace
-                $ip =~ s/^\s*,+|\s+//g;
-                # slice: take only first address from the list
-                $ip =~ s/,.*//;
-        }
+	# Sanitise and clean up $ip from XFF, if any.
+	if( EPrints::Utils::is_set( $ip ) )
+	{
+		# sanitise: remove lead commas and all whitespace
+		$ip =~ s/^\s*,+|\s+//g;
+		# slice: take only first address from the list
+		$ip =~ s/,.*//;
+		if ( EPrints::Utils::is_set( $self->config( 'ignore_x_forwarded_for_private_ip_prefixes' ) ) )
+		{
+			for my $ip_regex ( @{ $self->config( 'ignore_x_forwarded_for_private_ip_prefixes' ) } )
+			{
+				if ( $ip =~ m/^$ip_regex/ )
+				{
+					$ip = undef;
+					last;
+				}
+			}
+		}
+	}
 
-        # Apache v2.4+ (http://httpd.apache.org/docs/trunk/developer/new_api_2_4.html)
-        if( !EPrints::Utils::is_set( $ip ) && $r->can( "useragent_ip" ) )
-        {
-                $ip = $r->useragent_ip;
-        }
+	# Apache v2.4+ (http://httpd.apache.org/docs/trunk/developer/new_api_2_4.html)
+	if( !EPrints::Utils::is_set( $ip ) && $r->can( "useragent_ip" ) )
+	{
+		$ip = $r->useragent_ip;
+	}
 
-        # Apache v2.0-2.2
-        if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "client_ip" ) )
-        {
-                $ip = $r->connection->client_ip;
-        }
-
+	# Apache v2.0-2.2
+	if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "client_ip" ) )
+	{
+		$ip = $r->connection->client_ip;
+	}
 	if( !EPrints::Utils::is_set( $ip ) && $r->connection->can( "remote_ip" ) )
 	{
 		$ip = $r->connection->remote_ip;
 	}
-        return $ip;
+	return $ip;
 }
 
 ######################################################################
@@ -813,9 +823,9 @@ sub _add_http_paths
 	);
 
 	# old-style configuration names
-	$config->{"urlpath"} ||= $config->{"base_url"};
+	$config->{"urlpath"} ||= $config->{"http_root"};
 	$config->{"frontpage"} ||= $config->{"base_url"} . "/";
-	$config->{"userhome"} ||= $config->{"perl_url"} . "/users/home";
+	$config->{"userhome"} ||= $config->{"http_cgiroot"} . "/users/home";
 }
  
 ######################################################################
@@ -3375,12 +3385,13 @@ it needs to point to a different frame or window.
 
 sub render_link
 {
-	my( $self, $uri, $target ) = @_;
+	my( $self, $uri, $target, %opts ) = @_;
 
 	return $self->make_element(
 		"a",
 		href=>$uri,
-		target=>$target );
+		target=>$target,
+		%opts );
 }
 
 ######################################################################
@@ -3405,9 +3416,9 @@ sub render_row
 
 	my( $tr, $th, $td );
 
-	$tr = $repository->make_element( "tr" );
+	$tr = $repository->make_element( "tr", class=>"ep_table_row" );
 
-	$th = $repository->make_element( "th", valign=>"top", class=>"ep_row" ); 
+	$th = $repository->make_element( "th", valign=>"top", class=>"ep_row ep_table_header" ); 
 	if( !defined $key )
 	{
 		$th->appendChild( $repository->render_nbsp );
@@ -3421,7 +3432,7 @@ sub render_row
 
 	foreach my $value ( @values )
 	{
-		$td = $repository->make_element( "td", valign=>"top", class=>"ep_row" ); 
+		$td = $repository->make_element( "td", valign=>"top", class=>"ep_row ep_table_data" ); 
 		$td->appendChild( $value );
 		$tr->appendChild( $td );
 	}
@@ -3459,7 +3470,9 @@ sub render_row_with_help
 	if ( ref $parts{label} ne "" ) 
 	{
 		$th = $self->make_element( "div", class=> "ep_multi_heading ep_table_cell" );
-		my $label = $self->make_element( "span", id=>$parts{prefix}."_label" );
+		my $prefix = $parts{prefix};
+		$prefix .= "_legend" if defined $parts{uses_fieldset} && $parts{uses_fieldset};
+		my $label = $self->make_element( "span", id=>$prefix."_label" );
 		$label->appendChild( $parts{label} );
 		$th->appendChild( $label );
 	}
@@ -3516,12 +3529,20 @@ sub render_row_with_help
 	my $td2 = $self->make_element( "div", class=>"ep_multi_help ep_only_js_table_cell ep_toggle ep_table_cell" );
 	my $show_help = $self->make_element( "div", class=>"ep_sr_show_help ep_only_js", id=>$parts{help_prefix}."_show" );
 	my $helplink = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$show_help->appendChild( $self->html_phrase( "lib/session:show_help",link=>$helplink ) );
+	$helplink->appendChild( $self->make_element( "img", 
+		alt => $self->html_phrase( "lib/session:show_help_alt" ), 
+		title=> $self->html_phrase( "lib/session:show_help_title" ), 
+		src => $self->html_phrase( "lib/session:show_help_src" ) ) );
+	$show_help->appendChild( $helplink );
 	$td2->appendChild( $show_help );
 
 	my $hide_help = $self->make_element( "div", class=>"ep_sr_hide_help ep_hide", id=>$parts{help_prefix}."_hide" );
 	my $helplink2 = $self->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlide('$parts{help_prefix}',false,'block');EPJS_toggle('$parts{help_prefix}_hide',false,'block');EPJS_toggle('$parts{help_prefix}_show',true,'block');return false", href=>"#" );
-	$hide_help->appendChild( $self->html_phrase( "lib/session:hide_help",link=>$helplink2 ) );
+        $helplink2->appendChild( $self->make_element( "img", 
+		alt => $self->html_phrase( "lib/session:hide_help_alt" ), 
+		title=> $self->html_phrase( "lib/session:hide_help_title" ), 
+		src => $self->html_phrase( "lib/session:hide_help_src" ) ) );
+	$hide_help->appendChild( $helplink2 );
 	$td2->appendChild( $hide_help );
 	$tr->appendChild( $td2 );
 
@@ -3660,7 +3681,8 @@ sub render_option_list
 	# defaults_at_top : move items already selected to top
 	# 			of list, so they are visible.
 	# class    : css classes to apply to the select
-	# onchange :
+	# readonly : used to flag the component as readonly, however this is not directly enforced by browsers
+	# onchange : all an onchange event handler to be registered
 	# aria-labelledby :
 	# aria-describedby :
 
@@ -3714,7 +3736,7 @@ sub render_option_list
 	if( $params{checkbox} )
 	{
 		my $fieldset = $self->make_element( "fieldset", class=>"ep_option_list" );
-		my $legend = $self->make_element( "legend", id=> $params{name}."_label", class=>"ep_field_legend" );
+		my $legend = $self->make_element( "legend", id=> $params{name}."_label", class=>"ep_field_legend", 'aria-labelledby' => $params{name}."_legend_label" );
 		$legend->appendChild( $self->make_text( $params{legend} ) );
 		$fieldset->appendChild( $legend ); 
 		my $rowdiv = $self->make_element( "div", class=>"ep_option_list_row" );
@@ -3752,7 +3774,7 @@ sub render_option_list
 		
 
 	my $class = ( defined($params{class}) ) ? $params{class} : "";
-	my $element = $self->make_element( "select" , name => $params{name}, id => $params{name}, class => $class );
+	my $element = $self->make_element( "select", name => $params{name}, id => $params{name}, class => $class );
 	my $span = undef;
 	if( $params{readonly} )
         {
@@ -3816,7 +3838,7 @@ sub render_option_list
 
 =begin InternalDoc
 
-=item $option = $repository->render_single_option( $key, $desc, $selected )
+=item $option = $repository->render_single_option( $key, $desc, $selected, $disabled )
 
 Used by render_option_list.
 
@@ -3827,7 +3849,7 @@ Used by render_option_list.
 
 sub render_single_option
 {
-	my( $self, $key, $desc, $selected ) = @_;
+	my( $self, $key, $desc, $selected, $disabled ) = @_;
 
 	my $opt = $self->make_element( "option", value => $key );
 	$opt->appendChild( $self->make_text( $desc ) );
@@ -3836,6 +3858,11 @@ sub render_single_option
 	{
 		$opt->setAttribute( "selected" , "selected" );
 	}
+	elsif( $disabled )
+	{
+		$opt->setAttribute( "disabled" , "disabled" );
+	}
+
 	return $opt;
 }
 
@@ -3859,14 +3886,21 @@ and name and value as specified. eg.
 
 sub render_hidden_field
 {
-	my( $self, $name, $value ) = @_;
+	my( $self, $name, $value, $id ) = @_;
 
 	if( !defined $value ) 
 	{
 		$value = $self->param( $name );
 	}
 
-	return $self->xhtml->hidden_field( $name, $value );
+	my @opts = ();
+	if ( $id )
+	{
+		$id = EPrints::Utils::sanitise_element_id( $id );
+		push @opts, ( 'id', $id ) if $id;
+	}
+
+	return $self->xhtml->hidden_field( $name, $value, @opts );
 }
 
 sub render_input_field
@@ -5573,7 +5607,7 @@ sub mail_administrator
 		langid => $langid,
 		to_email => $self->get_conf( "adminemail" ),
 		to_name => $self->phrase( "lib/session:archive_admin" ),	
-		from_email => $self->get_conf( "adminemail" ),
+		from_email => $self->get_conf( "senderemail" ) ? $self->get_conf( "senderemail" ) : $self->get_conf( "adminemail" ),
 		from_name => $self->phrase( "lib/session:archive_admin" ),	
 		subject =>  EPrints::Utils::tree_to_utf8(
 			$self->html_phrase( $subjectid ) ),
@@ -5639,10 +5673,17 @@ sub valid_login
 	my $real_username;
 	
 	my $user = user_by_username( $self, $username );
-	return unless defined $user;
-	my $loginattempts = $user->get_value( "loginattempts" ) || 0;
-	my $unlocktime = $user->get_value( "unlocktime" ) || 0;
-	my $max_login_attempts = $self->get_conf( "max_login_attempts" );
+
+	my $loginattempts = 0;
+	my $unlocktime = 0;
+	my $max_login_attempts = 100; # Set default that cannot be reached if user not defined
+	if ( defined $user )
+	{
+		$loginattempts = $user->get_value( "loginattempts" ) || 0;
+		$unlocktime = $user->get_value( "unlocktime" ) || 0;
+		$max_login_attempts = $self->get_conf( "max_login_attempts" ) || 100; # Set default unlikely to be reached if no configuration.
+	}	
+	
 	if ( $unlocktime && ( $unlocktime <= time() || $loginattempts < $max_login_attempts ) )
 	{	
 		$loginattempts = 0 if $unlocktime <= time();
@@ -5651,7 +5692,7 @@ sub valid_login
 	}
 	return if $unlocktime > time();
 	$loginattempts++;
-	$user->set_value( "loginattempts", $loginattempts );
+	$user->set_value( "loginattempts", $loginattempts ) if defined $user;
 	
 	if( $self->can_call( "check_user_password" ) )
 	{
@@ -5678,18 +5719,21 @@ sub valid_login
 		$real_username = $self->get_database->valid_login( $username, $password );
 	}
 
-	if ( EPrints::Utils::is_set( $real_username ) )
+	if ( defined $user )
 	{
-		$user->set_value( "loginattempts", 0 );
-                $user->set_value( "unlocktime", undef );
-	}
-	elsif ( $loginattempts >= $max_login_attempts )
-	{
-		my $unlocktime = time() + $self->get_conf( "lockout_minutes" ) * 60;
-		$user->set_value( "unlocktime", $unlocktime );
-	}
+		if ( EPrints::Utils::is_set( $real_username ) )
+		{
+			$user->set_value( "loginattempts", 0 );
+			$user->set_value( "unlocktime", undef );
+		}
+		elsif ( $loginattempts >= $max_login_attempts )
+		{
+			my $unlocktime = time() + $self->get_conf( "lockout_minutes" ) * 60;
+			$user->set_value( "unlocktime", $unlocktime );
+		}
 
-	$user->commit;
+		$user->commit;
+	}
 
 	return $real_username;
 }
@@ -6010,6 +6054,8 @@ sub in_export_fieldlist
 
 =item $timestamp = $repository->auto_timestamp( $type )
 
+B<DEPRECATED>
+
 Return an integer (seconds since start of last epoch) for the 
 modification time of the generated auto with C<$type> file from 
 L<EPrints::Update::Static::update_auto>
@@ -6021,34 +6067,30 @@ L<EPrints::Update::Static::update_auto>
 
 sub auto_timestamp
 {
-
 	my ( $self, $type ) = @_;
-
-	my $auto_ts_file = $self->get_conf( "variables_path" )."/auto-$type.timestamp";
-	if ( -s $auto_ts_file ) 
-	{
-		open( my $fh, '<', $auto_ts_file ) or return 0;
-		my $ts = <$fh>;
-		close( $fh );
-		return $ts;
-	}
-	return 0;
+	
+	my $lang = $self->get_langid;
+	my $auto_file = $self->config( "htdocs_path" ) . "/" . $self->get_langid . "/";
+	$auto_file .= "style/auto.css" if $type eq "css";
+	$auto_file .= "javascript/auto.js" if $type eq "js";
+	
+	return (stat($auto_file))[9];	
 }
 
 1;		
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -6065,5 +6107,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

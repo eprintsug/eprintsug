@@ -69,7 +69,7 @@ sub validate
 		if( $field->{required} && !$self->{dataobj}->is_set( $field->{name} ) )
 		{
 			my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-			$fieldname->appendChild( $field->render_name( $self->{session} ) );
+			$fieldname->appendChild( $field->render_name( $self->{session}, $self->{dataobj} ) );
 			my $problem = $self->{session}->html_phrase(
 				"lib/eprint:not_done_field" ,
 				fieldname=>$fieldname );
@@ -156,16 +156,17 @@ sub render_content
 		$parts{class} = "ep_first" if $first;
 		$first = 0;
 
-		$parts{label} = $field->render_name( $self->{session} );
+		$parts{label} = $field->render_name( $self->{session}, $self->{dataobj} );
 
 		if( $field->{required} ) # moj: Handle for_archive
 		{
-			my $label = $self->{session}->make_element( "span", id => $self->{prefix}."_".$field->get_name."_label" );
-			my $labeltext = $self->{session}->html_phrase(
-                                "sys:ep_form_required",
-                                label=>$parts{label} );
-			$label->appendChild( $labeltext );
-			$parts{label} = $label;
+                        my $required = $self->{session}->make_element( "img",
+                                src => $self->{session}->html_phrase( "sys:ep_form_required_src" ),
+                                class => "ep_required",
+                                alt => $self->{session}->html_phrase( "sys:ep_form_required_alt" ));
+                        $required->appendChild( $self->{session}->make_text( " " ) );
+                        $required->appendChild( $parts{label} );
+                        $parts{label} = $required;
 		}
 
 		# customisation for type specific help on the eprint workflow
@@ -217,7 +218,7 @@ sub render_content
 		$parts{prefix} = $self->{prefix} . "_" . $field->get_name;
 		$parts{help_prefix} = $self->{prefix}."_help_".$field->get_name;
 
-		
+		$parts{uses_fieldset} = 1 if $field->{form_input_style} eq "checkbox" || $field->{input_style} eq "checkbox";
 
 		$table->appendChild( $self->{session}->render_row_with_help( %parts ) );
 	}
@@ -299,16 +300,16 @@ sub get_state_fragment
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -325,5 +326,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

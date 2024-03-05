@@ -416,13 +416,20 @@ Render the name of this field as an XHTML object.
 
 sub render_name
 {
-	my( $self ) = @_;
+	my( $self, $session, $dataobj ) = @_;
 
 	if( defined $self->{title_xhtml} )
 	{
-		return $self->{title_xhtml};
+		return EPrints::XML::clone_node( $self->{title_xhtml}, 1 );
 	}
 	my $phrasename = $self->{confid}."_fieldname_".$self->{name};
+
+	# Allow for alternative field names for different types of eprint (or any data object with a type field).
+	if ( ref( $dataobj ) && $dataobj->can( 'exists_and_set' ) && $dataobj->exists_and_set('type') )
+	{
+		my $pos_phrasename = $dataobj->get_dataset_id . '_fieldname_' . $self->{name} . '.' . $dataobj->get_value('type'); 
+		$phrasename = $pos_phrasename if $self->repository->get_lang->has_phrase( $pos_phrasename );
+	}
 
 	return $self->repository->html_phrase( $phrasename );
 }
@@ -474,7 +481,7 @@ sub render_help
 
 	if( defined $self->{help_xhtml} )
 	{
-		return $self->{help_xhtml};
+		return EPrints::XML::clone_node( $self->{help_xhtml}, 1 );
 	}
 	my $phrasename = $self->{confid}."_fieldhelp_".$self->{name};
 
@@ -1650,8 +1657,8 @@ sub get_describedby
 {
 	my ( $self, $basename, $one_field_component ) = @_;
 
-	return "" if defined $self->{dataset} && !$self->repository->get_lang->has_phrase( $self->{dataset}->confid . "_fieldhelp_" . $self->get_name );
-	return "" if defined $self->{parent} && !$self->repository->get_lang->has_phrase( $self->{dataset}->confid . "_fieldhelp_" . $self->{parent}->get_name ); 
+	return "" if defined $self->{dataset} && !$self->repository->get_lang->has_non_empty_phrase( $self->{dataset}->confid . "_fieldhelp_" . $self->get_name );
+	return "" if defined $self->{parent} && !$self->repository->get_lang->has_non_empty_phrase( $self->{dataset}->confid . "_fieldhelp_" . $self->{parent}->get_name ); 
 
 	my $basename_top = $basename;
         $basename_top =~ s/_\d+_/_/ if $self->{multiple} || ( defined $self->{parent} && $self->{parent}->{multiple} );
@@ -1758,6 +1765,9 @@ sub form_value_basic
 
 	# strip line breaks (turn them to "space")
 	$value=~s/[\n\r]+/ /gs;
+
+	# replace UTF8-MB4 characters with a �
+	$value=~s/[^\N{U+0000}-\N{U+FFFF}]/\N{REPLACEMENT CHARACTER}/g;
 
 	return $value;
 }
@@ -2265,7 +2275,12 @@ sub render_xml_schema_type
 sub render_search_input
 {
 	my( $self, $session, $searchfield, %opts ) = @_;
-	
+
+	if( defined $self->{render_search_input} )
+	{
+		return $self->call_property( "render_search_input", $self, $session, $searchfield );
+	}
+	        
 	my $frag = $session->make_doc_fragment;
 
 	if( $searchfield->get_match ne "EX" )
@@ -2384,6 +2399,7 @@ sub get_property_defaults
 		export_as_xml 	=> EP_PROPERTY_TRUE,
 		false_first	=> EP_PROPERTY_FALSE,
 		fromform 	=> EP_PROPERTY_UNDEF,
+		fromsearchform  => EP_PROPERTY_UNDEF,
 		get_item	=> EP_PROPERTY_UNDEF,
 		import		=> EP_PROPERTY_TRUE,
 		input_add_boxes => EP_PROPERTY_FROM_CONFIG,
@@ -2392,6 +2408,7 @@ sub get_property_defaults
 		input_lookup_url 	=> EP_PROPERTY_UNDEF,
 		input_lookup_params 	=> EP_PROPERTY_UNDEF,
 		input_ordered 	=> EP_PROPERTY_TRUE,
+		join_phraseid   => EP_PROPERTY_UNDEF,
 		make_single_value_orderkey 	=> EP_PROPERTY_UNDEF,
 		make_value_orderkey 		=> EP_PROPERTY_UNDEF,
 		show_in_fieldlist	=> EP_PROPERTY_TRUE,
@@ -2401,8 +2418,10 @@ sub get_property_defaults
 		name 		=> EP_PROPERTY_REQUIRED,
 		show_in_html	=> EP_PROPERTY_TRUE,
 		render_input 	=> EP_PROPERTY_UNDEF,
+		render_search_input => EP_PROPERTY_UNDEF,
 		render_single_value 	=> EP_PROPERTY_UNDEF,
 		render_quiet	=> EP_PROPERTY_FALSE,
+		render_column_quiet    => EP_PROPERTY_FALSE,
 		render_magicstop	=> EP_PROPERTY_FALSE,
 		render_noreturn	=> EP_PROPERTY_FALSE,
 		render_dont_link	=> EP_PROPERTY_FALSE,
@@ -2702,16 +2721,16 @@ sub is_set
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -2728,5 +2747,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

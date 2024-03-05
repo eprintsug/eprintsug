@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Int;
+# EPrints::MetaField::Int
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -73,7 +75,12 @@ sub ordervalue_basic
 sub render_search_input
 {
 	my( $self, $session, $searchfield ) = @_;
-	
+
+	if( defined $self->{render_search_input} )
+	{
+		return $self->call_property( "render_search_input", $self, $session, $searchfield );
+	}
+
 	return $session->render_input_field(
 				class => "ep_form_text",
 				name=>$searchfield->get_form_prefix,
@@ -88,6 +95,11 @@ sub from_search_form
 	my( $self, $session, $prefix ) = @_;
 
 	my $value = $session->param( $prefix );
+	if( defined $self->{fromsearchform} )
+	{
+		$value = $self->call_property( "fromsearchform", $value, $session, $prefix );
+	}
+
 	return $value unless EPrints::Utils::is_set( $value );
 
 	my $regexp = $self->property( "regexp" );
@@ -198,7 +210,6 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{digits} = $EPrints::MetaField::FROM_CONFIG;
-	$defaults{text_index} = 0;
 	$defaults{regexp} = qr/-?[0-9]+/;
 	return %defaults;
 }
@@ -248,16 +259,16 @@ sub form_value_basic
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -274,5 +285,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

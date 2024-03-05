@@ -42,8 +42,10 @@ $c->{validate_document} = sub
 	}
 
 	# security can't be "public" if date embargo set
-	if( $document->value( "security" ) eq "public" &&
-		EPrints::Utils::is_set( $document->value( "date_embargo" ) ) )
+	if( !$repository->config( "retain_embargo_dates" ) && 
+	    $document->value( "security" ) eq "public" &&
+		EPrints::Utils::is_set( $document->value( "date_embargo" ) )
+		)
 	{
 		my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
 		push @problems, $repository->html_phrase( 
@@ -56,13 +58,15 @@ $c->{validate_document} = sub
 	{
 		my $value = $document->value( "date_embargo" );
 		my ($year, $month, $day) = split( '-', $value );
+		my ($thisyear, $thismonth, $thisday) = EPrints::Time::get_date_array();
+
 		if ( !EPrints::Utils::is_set( $month ) || !EPrints::Utils::is_set( $day ) )
 		{
 			my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
                         push @problems, $repository->html_phrase( "validate:embargo_incomplete_date", fieldname=>$fieldname );
 		}
-		else {
-			my ($thisyear, $thismonth, $thisday) = EPrints::Time::get_date_array();
+		elsif ( !$repository->config( "retain_embargo_dates" ) )
+		{
 			if( $year < $thisyear || ( $year == $thisyear && $month < $thismonth ) ||
 				( $year == $thisyear && $month == $thismonth && $day <= $thisday ) )
 			{
@@ -72,6 +76,14 @@ $c->{validate_document} = sub
 					fieldname=>$fieldname );
 			}
 		}
+		elsif ( $document->value( "security" ) eq "public" && ( $year > $thisyear || ( $year == $thisyear && $month > $thismonth ) || 
+			( $year == $thisyear && $month == $thismonth && $day > $thisday ) ) )
+		{
+			my $fieldname = $xml->create_element( "span", class=>"ep_problem_field:documents" );
+			push @problems, $repository->html_phrase(
+				"validate:embargo_check_security",
+				fieldname=>$fieldname );
+		}
 	}
 
 
@@ -80,16 +92,16 @@ $c->{validate_document} = sub
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -106,5 +118,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

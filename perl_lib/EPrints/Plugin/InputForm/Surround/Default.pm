@@ -19,9 +19,13 @@ sub render_title
 
 	if( $component->is_required )
 	{
-		$title = $self->{session}->html_phrase( 
-			"sys:ep_form_required",
-			label=>$title );
+                my $required = $self->{session}->make_element("img",
+                        src => $self->{session}->html_phrase( "sys:ep_form_required_src" ),
+                        class => "ep_required",
+                        alt => $self->{session}->html_phrase( "sys:ep_form_required_alt" ));
+                $required->appendChild( $self->{session}->make_text( " " ) );
+                $required->appendChild( $title );
+                $title = $required;
 	}
 
 	return $title;
@@ -40,6 +44,10 @@ sub render
 
 	my $label_id = $component->{prefix} . "_label";
 	$label_id = $component->{prefix} . "_".$component->{config}->{field}->{name}."_label" if defined $component->{config}->{field};
+	if ( defined $component->{config}->{field} && ( $component->{config}->{field}->{form_input_style} eq "checkbox" || $component->{config}->{field}->{input_style} eq "checkbox" ) ) 
+	{
+		$label_id = $component->{prefix} . "_".$component->{config}->{field}->{name}."_legend_label";
+	} 
 
 	$surround->appendChild( $self->{session}->make_element( "a", name=>$component->{prefix} ) );
 	foreach my $field_id ( $component->get_fields_handled )
@@ -174,7 +182,12 @@ sub _render_help
 		my $link = $session->make_element( "a",
 			onclick => $jscript,
 			href => '#' );
-		$div->appendChild( $self->html_phrase( "${action}_help", link => $link ) );
+		$link->appendChild( $session->make_element( "img", 
+			alt => $session->html_phrase( "lib/session:${action}_help_alt" ), 
+			title => $session->html_phrase( "lib/session:${action}_help_title" ), 
+			src => $session->html_phrase( "lib/session:${action}_help_src" ), 
+			border => "0" ));
+		$div->appendChild( $link );
 
 		$action_div->appendChild( $div );
 	}
@@ -184,16 +197,16 @@ sub _render_help
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -210,5 +223,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

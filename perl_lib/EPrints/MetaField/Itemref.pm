@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Itemref;
+# EPrints::MetaField::Itemref
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -42,10 +44,23 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{datasetid} = $EPrints::MetaField::REQUIRED;
-	$defaults{text_index} = 0;
 	$defaults{get_item} = $EPrints::MetaField::UNDEF;
 	$defaults{render_item} = $EPrints::MetaField::UNDEF;
 	return %defaults;
+}
+
+sub get_input_col_titles
+{
+	my ( $self, $session, $staff, $from_compound ) = @_;
+	if ( !$from_compound )
+	{
+		return;
+	}
+
+	my @r;
+	push @r, $self->render_name($session);
+	push @r, $session->make_doc_fragment();
+	return \@r;
 }
 
 sub get_basic_input_elements
@@ -59,6 +74,18 @@ sub get_basic_input_elements
 	push @{$ex->[0]}, {el=>$desc, style=>"padding: 0 0.5em 0 0.5em;"};
 
 	return $ex;
+}
+
+sub get_basic_input_ids
+{
+	my ( $self, $session, $basename, $staff, $obj, $from_compound ) = @_;
+	my @r;
+	push @r, $basename;
+	if ($from_compound)
+	{
+		push @r, $basename . '_citation';
+	}
+	return @r;
 }
 
 sub render_single_value
@@ -139,16 +166,16 @@ sub get_input_elements
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -165,5 +192,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Search;
+# EPrints::MetaField::Search
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -155,14 +157,28 @@ sub get_basic_input_elements
 	my $searchexp = $self->make_searchexp( $session, $value, $basename."_", $obj );
 
 	foreach my $sf ( $searchexp->get_non_filter_searchfields )
-	{
+	{		
+		my $ft = $sf->{"field"}->get_type();
+		my $div_id;
+		my $field;
+		if ( ( $ft eq "set" || $ft eq "namedset" ) && $sf->{"field"}->{search_input_style} eq "checkbox" )
+		{
+			$div_id = $basename."_".$sf->{id}."_legend_label";
+			$field = $sf->render( legend => EPrints::Utils::tree_to_utf8( $sf->render_name ) . " " . EPrints::Utils::tree_to_utf8( $session->html_phrase( "lib/searchfield:desc:set_legend_suffix" ) ) );
+		}
+		else
+		{
+			$div_id = $basename."_".$sf->{id}."_label";
+			$field = $sf->render();	
+		}
+
 		my $sfdiv = $session->make_element( 
 				"div" , 
 				class => "ep_search_field_name",
-				id => $basename."_".$sf->{id}."_label" );
+				id => $div_id );
 		$sfdiv->appendChild( $sf->render_name );
 		$div->appendChild( $sfdiv );
-		$div->appendChild( $sf->render() );
+		$div->appendChild( $field );
 	}
 
 	return [ [ { el=>$div } ] ];
@@ -190,6 +206,9 @@ sub form_value_basic
 		$value = $searchexp->serialise;	
 	}
 
+	# replace UTF8-MB4 characters with a �
+	$value=~s/[^\N{U+0000}-\N{U+FFFF}]/\N{REPLACEMENT CHARACTER}/g if defined $value;
+
 	return $value;
 }
 
@@ -211,16 +230,16 @@ sub get_property_defaults
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -237,5 +256,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

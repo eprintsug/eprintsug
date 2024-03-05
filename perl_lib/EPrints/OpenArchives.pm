@@ -92,7 +92,7 @@ sub make_header
 
 	if( EPrints::Utils::is_set( $oai2 ) )
 	{
-		if( $eprint->get_dataset()->id() eq "deletion" )
+		if( $eprint->get_dataset()->id() eq "deletion" || ( $eprint->get_dataset()->id() ne "archive" && defined $eprint->get_value( 'datestamp' ) ) )
 		{
 			$header->setAttribute( "status" , "deleted" );
 			return $header;
@@ -176,7 +176,7 @@ sub make_record
 	$record->appendChild( $session->make_indent( 4 ) );
 	$record->appendChild( $header );
 
-	if( $eprint->get_dataset()->id() eq "deletion" )
+	if( $eprint->get_dataset()->id() eq "deletion" || ( $eprint->get_dataset()->id() ne "archive" && defined $eprint->get_value( 'datestamp' ) ) )
 	{
 		unless( EPrints::Utils::is_set( $oai2 ) )
 		{
@@ -197,7 +197,10 @@ sub make_record
 		# low-level stuff
 		if( $md->isa( "XML::LibXML::Element" ) && $md->can( "_setAttribute" ) )
 		{
-			$md->_setAttribute( "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance" );
+			unless ( EPrints::Utils::is_set( $md->getAttribute( "xmlns:xsi" ) ) )
+			{
+				$md->_setAttribute( "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance" );
+			}
 		}
 		$record->appendChild( $session->make_indent( 4 ) );
 		$record->appendChild( $metadata );

@@ -158,6 +158,8 @@ sub action_test_upload
 	$tmpfile = *$tmpfile; # CGI file handles aren't proper handles
 	return if !defined $tmpfile;
 
+	$self->{processor}->{filename} = $self->{repository}->get_query->param( "file" );
+
 	my $list = $self->run_import( 1, 0, $tmpfile ); # dry run with messages
 	$self->{processor}->{results} = $list;
 }
@@ -506,7 +508,7 @@ sub render_import_form
         $help->appendChild( $self->html_phrase( "data_help" ) );
 	$div->appendChild( $help );
 
-	my $form = $div->appendChild( $self->{processor}->screen->render_form );
+	my $form = $div->appendChild( $self->{processor}->screen->render_form( "import_data" ) );
 	$form->appendChild(EPrints::MetaField->new(
 			name => "data",
 			type => "longtext",
@@ -544,7 +546,7 @@ sub render_upload_form
         $div->appendChild( $help );
 
 
-	my $form = $div->appendChild( $self->{processor}->screen->render_form );
+	my $form = $div->appendChild( $self->{processor}->screen->render_form( "import_file" ) );
 	$form->appendChild( $xhtml->input_field(
 		file => undef,
 		type => "file",
@@ -562,7 +564,7 @@ sub render_upload_form
 			map { $_ => $_ } @{$self->param( "encodings" )},
 		},
 		'aria-labelledby' => "encoding_label",
-		'areia-describedby' => "upload_help",
+		'aria-describedby' => "upload_help",
 	) );
 	$form->appendChild( $xml->create_element( "br" ) );
 	$form->appendChild( $xml->create_element( "br" ) );
@@ -665,7 +667,7 @@ sub render_import_bar
 			name=>"_action_import_from",
 			value=>$self->phrase( "action:import_from:title" ) ) );
 	$button->appendChild( 
-		$session->render_hidden_field( "screen", substr($self->{id},8) ) ); 
+		$session->render_hidden_field( "screen", substr($self->{id},8), "screen_import" ) ); 
 
 	my $form = $session->render_form( "GET" );
 	$form->appendChild( $self->html_phrase( "import_section",
@@ -735,16 +737,16 @@ sub object { }
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -761,5 +763,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

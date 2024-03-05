@@ -1954,11 +1954,8 @@ sub render_icon_link
 	my %aopts;
 	$aopts{class} = "ep_document_link";
 	$aopts{target} = "_blank" if( $opts{new_window} );
-	$aopts{href} = $self->{session}->current_url(
-		host => 1,
-		path => "static",
-		$self->file_path
-	);
+	$aopts{href} = $self->get_url;
+
 	my $preview_id = "doc_preview_".$self->get_id;
 	my $preview_url;
 	if( $opts{preview} )
@@ -1975,13 +1972,15 @@ sub render_icon_link
 		$aopts{onblur} = "EPJS_HidePreview( event, '$preview_id', '$opts{preview_side}' );";
 	}
 	my $f = $self->{session}->make_doc_fragment;
+	my $img_class = ( $opts{size} ) ? 'ep_doc_icon ep_doc_icon_'.$opts{size} : "ep_doc_icon";
 	my $img_alt = $self->value('main');
 	$img_alt = $self->value('formatdesc') if EPrints::Utils::is_set( $self->value('formatdesc') );
 	my $img = $self->{session}->make_element(
 		"img",
-		class=>"ep_doc_icon",
+		class=>$img_class,
 		alt=>"[thumbnail of $img_alt]",
-		src=>$self->icon_url( public=>$opts{public} ),
+  		title=>"$img_alt",
+		src=>$self->icon_url( public=>$opts{public}, size=>$opts{size} ),
 		border=>0 );
 	if ( $opts{with_link} )
 	{
@@ -2194,8 +2193,10 @@ sub remove_thumbnails
 	my( $self ) = @_;
 
 	my $eprint = $self->parent;
+	return unless $eprint;
 
 	my $under_construction = $eprint->under_construction;
+	$under_construction = 0 unless $under_construction;
 	$eprint->{under_construction} = 1;
 
 	my @sizes = $self->thumbnail_types;
@@ -2259,7 +2260,10 @@ sub make_thumbnails
 	return unless defined $src_main;
 
 	my $eprint = $self->parent;
+	return unless $eprint;
+
 	my $under_construction = $eprint->under_construction;
+	$under_construction = 0 unless $under_construction;
 	$eprint->{under_construction} = 1;
 
 	my %thumbnails;

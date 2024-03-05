@@ -1,17 +1,19 @@
+######################################################################
+#
+# EPrints::ScreenProcessor
+#
+######################################################################
+#
+#
+######################################################################
+
+=pod
+
 =head1 NAME
 
 EPrints::ScreenProcessor
 
 =cut
-
-######################################################################
-#
-# EPrints::Script
-#
-######################################################################
-#
-#
-######################################################################
 
 package EPrints::ScreenProcessor;
 
@@ -242,13 +244,13 @@ sub render_item_list
 
 	my $xml = $self->{session}->xml;
 
-	my $ul = $xml->create_element( "ul", class => $class, id => "ep_tm_menu_tools", "role" => "toolbar" );
+	my $ul = $xml->create_element( "ul", class => $class, id => "ep_tm_menu_tools" );
 
 	foreach my $opt (@$list)
 	{
 		my $screen = $opt->{screen};
 
-		my $li = $xml->create_element( "li" );
+		my $li = $xml->create_element( "li", class => "ep_tm_key_tools_item" );
 
 		my $li_class = "";
                 $li_class = $self->{session}->config( 'item_list_class' ) if defined $self->{session}->config( 'item_list_class' );
@@ -441,6 +443,7 @@ sub process
 	$page->appendChild( $content );
     
 	my $template = $self->{template};
+	$template = $self->screen->{template} if defined $self->screen->{template};
 	$template = "default_internal" if not defined $template;
 
 	my $page_id = $self->{screenid};
@@ -576,16 +579,16 @@ sub action_not_allowed
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -602,5 +605,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

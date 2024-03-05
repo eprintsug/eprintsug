@@ -75,7 +75,8 @@ my $searchexp = new EPrints::Search(
 	search_fields => $search_fields,
 	custom_order => "-datestamp",
 	dataset => $ds,
-	limit => ($indexOffset+$number_to_get-1) );
+	limit => ($indexOffset+$number_to_get-1),
+	filters => $filters );
 my $title;
 if( $show_conditions )
 {
@@ -198,7 +199,7 @@ foreach my $item ( @records )
 	my $row = $item->render_citation_link( 
 		$citation,
 		n => [$n++, "INTEGER"] );
-	if( $type eq "table_row" )
+	if( $type eq "table_row" || $type eq "div_table_row" )
 	{
 		$container->appendChild( $row );
 	}

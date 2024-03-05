@@ -160,7 +160,7 @@ sub get_system_field_info
 		{ name=>"name", type=>"text" },
 
 		{ name => "spec", type => "search", datasetid => "eprint",
-			default_value=>"" },
+			default_value=>"", text_index => 0 },
 
 		{ name=>"frequency", type=>"set", required=>1,
 			options=>["never","daily","weekly","monthly"],
@@ -475,6 +475,10 @@ sub send_out_alert
 
 		EPrints::XML::dispose( $mail );
 	}
+	elsif ( $self->{session}->get_noise >= 2 )
+	{
+		print STDERR "Not sending out alert #".$self->get_id." to ".$user->get_value( "email" )." because saved search states not to send email if no results are found.\n"; 
+	}
 	$list->dispose;
 }
 
@@ -693,7 +697,7 @@ L<EPrints::DataSet>.
 
 =begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Name;
+# EPrints::MetaField::Name
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -370,8 +372,8 @@ sub get_property_defaults
         $defaults{hide_lineage} = $EPrints::MetaField::FROM_CONFIG;
         $defaults{family_first} = $EPrints::MetaField::FROM_CONFIG;
         $defaults{render_order} = "fg";
-        $defaults{render_limit} = $EPrints::MetaField::FROM_CONFIG;
-        $defaults{render_dynamic} = $EPrints::MetaField::FROM_CONFIG;
+        $defaults{render_limit} = $EPrints::MetaField::UNDEF;
+        $defaults{render_dynamic} = $EPrints::MetaField::UNDEF;
         $defaults{text_index} = 1;
         $defaults{render_custom} = "link";
 
@@ -570,16 +572,16 @@ sub ordervalue_basic
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -596,5 +598,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

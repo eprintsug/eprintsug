@@ -15,7 +15,7 @@
 
 EPrints::Apache::LogHandler - Main handler for Apache log events
 
-=head1 CONFIGURATION
+=head1 DESCRIPTION
 
 To enable the Apache::LogHandler add to your ArchiveConfig:
 
@@ -33,7 +33,8 @@ The requester is stored using their IP in URN format: C<urn:ip:x.x.x.x>.
 
 ServiceType is in format L<info:ofi/fmt:kev:mtx:sch_svc|http://alcme.oclc.org/openurl/servlet/OAIHandler?verb=GetRecord&metadataPrefix=oai_dc&identifier=info:ofi/fmt:kev:mtx:sch_svc>.
 
-The value is encoded as C<?name=yes> (where C<name> is one of the services defined).
+The value is encoded as C<?name=yes> (where C<name> is one of the 
+services defined).
 
 =item referent, referringEntity
 
@@ -102,11 +103,21 @@ our $TIMEOUT = 3600; # 1 hour
 ######################################################################
 =pod
 
+=back
+
+=head2 Class Methods
+
+=cut
+######################################################################
+
+######################################################################
+=pod
+
 =over 4
 
 =item EPrints:Apache::LogHandler::handler
 
-Empty (as deprecated)  handler method.
+Empty (as deprecated) handler method.
 
 =cut
 ######################################################################
@@ -118,10 +129,10 @@ sub handler {}
 
 =item EPrints:Apache::LogHandler::is_robot( $r, $ip )
 
-Test if request $r is a robot based on I<User-Agent> or if $ip is
-listed as a robot.
+Test if request C<$r> is a robot based on C<User-Agent> or if C<$ip>
+is listed as a robot.
 
-Returns boolean dependent or whether request has determined to be a 
+Returns a boolean dependent or whether request has determined to be a 
 robot.
 
 =cut
@@ -157,6 +168,17 @@ sub is_robot
 
 	return $is_robot;
 }
+
+
+######################################################################
+=pod
+
+=back
+
+=head2 Object Methods
+
+=cut
+######################################################################
 
 ######################################################################
 =pod
@@ -202,6 +224,11 @@ sub document
 	my $epdata = _generic( $r, { _parent => $doc } );
 
 	$epdata->{requester_id} = $ip;
+	my $access_ds = $doc->repository->dataset( "access" );
+	if ( $access_ds->has_field( "requester_userid" ) )
+	{
+		$epdata->{requester_userid} = ( defined $doc->repository->current_user ) ? $doc->repository->current_user->id : undef;
+	}
 	$epdata->{service_type_id} = "?fulltext=yes";
 	$epdata->{referent_id} = $doc->value( "eprintid" );
 	$epdata->{referent_docid} = $doc->id;
@@ -243,6 +270,11 @@ sub eprint
 	my $epdata = _generic( $r, { _parent => $eprint } );
 
 	$epdata->{requester_id} = $ip;
+	my $access_ds = $eprint->repository->dataset( "access" );
+	if ( $access_ds->has_field( "requester_userid" ) )
+	{
+		$epdata->{requester_userid} = ( defined $eprint->repository->current_user ) ? $eprint->repository->current_user->id : undef;
+	}
 	$epdata->{service_type_id} = "?abstract=yes";
 	$epdata->{referent_id} = $eprint->id;
 
@@ -295,7 +327,8 @@ sub _create_access
 
 1;
 
-__END__
+######################################################################
+=pod
 
 =back
 
@@ -303,19 +336,18 @@ __END__
 
 L<EPrints::DataObj::Access>
 
-
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -332,5 +364,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

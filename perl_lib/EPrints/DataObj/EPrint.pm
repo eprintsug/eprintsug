@@ -1541,13 +1541,22 @@ sub generate_static
 		next if( $status ne "archive" && $status ne "deletion" );
 
 		my( $page, $title, $links, $template ) = $self->render;
+
+		my $link = $self->{session}->make_element(
+			"link",
+			rel=>"canonical",
+			href=>$self->url_stem
+		);
+		$links = $self->{session}->make_doc_fragment() if( !defined $links );
+		$links->appendChild( $link );
+		$links->appendChild( $self->{session}->make_text( "\n" ) );
+
 		my @plugins = $self->{session}->plugin_list( 
 					type=>"Export",
 					can_accept=>"dataobj/".$self->{dataset}->confid, 
 					is_advertised => 1,
 					is_visible=>"all" );
 		if( scalar @plugins > 0 ) {
-			$links = $self->{session}->make_doc_fragment() if( !defined $links );
 			foreach my $plugin_id ( @plugins ) 
 			{
 				$plugin_id =~ m/^[^:]+::(.*)$/;
@@ -1701,9 +1710,9 @@ sub render
 		$content_bottom->appendChild( render_box_list( $self->{session}, $self, "summary_bottom", $preview ) );
 		$content_top->appendChild( render_box_list( $self->{session}, $self, "summary_top", $preview ) );
 
+		$content->appendChild( $content_top );
 		$content->appendChild( $content_left );
 		$content->appendChild( $content_right );
-		$content->appendChild( $content_top );
 		$content->appendChild( $content_main );
 		$content_main->appendChild( $dom );
 		$content->appendChild( $content_bottom );
@@ -2741,7 +2750,7 @@ L<EPrints::DataObj> and L<EPrints::DataSet>.
 
 =begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

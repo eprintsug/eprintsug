@@ -121,9 +121,9 @@ sub render
 
 		my $reason = $self->{session}->make_doc_fragment;
 		my $reason_label = $self->{session}->make_element( "label", for=>"ep_mail_reason_edit" );
-                $reason_label->appendChild( $self->html_phrase( "reason_label" ) );
-                $reason_label->appendChild( $self->{session}->make_text( ":" ) );
-                $reason->appendChild( $reason_label );
+		$reason_label->appendChild( $self->html_phrase( "reason_label" ) );
+		$reason_label->appendChild( $self->{session}->make_text( ":" ) );
+		$reason->appendChild( $reason_label );
 		my $reason_static = $self->{session}->make_element( "div", id=>"ep_mail_reason_fixed",class=>"ep_only_js" );
 		$reason_static->appendChild( $self->{session}->html_phrase( "mail_bounce_reason" ) );
 		$reason_static->appendChild( $self->{session}->make_text( " " ));	
@@ -191,7 +191,7 @@ sub render_body
 	$parts{edit_link} = $repo->render_link( $eprint->get_control_url() )
 		if !defined $parts{edit_link};
 
-	$parts{reason} = $repo->make_text( scalar($repo->param( "reason" )) )
+	$parts{reason} = EPrints::Extras::render_paras( $repo, "reason", scalar( $repo->param( "reason" ) ) )
 		if !defined $parts{reason};
 
 	return $repo->html_phrase(
@@ -255,16 +255,16 @@ sub action_send
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -281,6 +281,6 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 
 

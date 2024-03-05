@@ -49,8 +49,8 @@ The event was last touched at this time.
 
 =item status (set)
 
-The status of this event. Can be C<waiting>, C<inprogress>, C<success>
-or C<failed>. Defaults to C<failed>.
+The status of this event. Can be C<waiting>, C<staged>, C<inprogress>, C<success>
+or C<failed>. Defaults to C<waiting>.
 
 =item description (longtext)
 
@@ -146,6 +146,17 @@ sub create_unique
         return $task;
     }
 
+    # Some event queue plugins create 'staged' tasks that are logged by the indexer but executed by an external script, (e.g. video transcoding).
+    my $plugin = $session->plugin( $data->{pluginid} );
+    if ( defined $plugin )
+    {
+        if ( $plugin->{staged} || ( $plugin->can( 'is_staged_task' ) && $plugin->is_staged_task( $data ) ) )
+        {
+            $data->{status} = "staged";
+            $data->{cleanup} = "FALSE";
+        }
+    }
+
     return $class->create_from_data( $session, $data, $dataset );
 }
 
@@ -211,7 +222,7 @@ sub get_system_field_info
 		{ name=>"priority", type=>"int", },
 		{ name=>"start_time", type=>"timestamp", required=>1, },
 		{ name=>"end_time", type=>"time", },
-		{ name=>"status", type=>"set", options=>[qw( waiting inprogress success failed )], default_value=>"waiting", },
+		{ name=>"status", type=>"set", options=>[qw( waiting staged inprogress success failed )], default_value=>"waiting", },
 		{ name=>"userid", type=>"itemref", datasetid=>"user", },
 		{ name=>"description", type=>"longtext", },
 		{ name=>"pluginid", type=>"id", required=>1, },
@@ -459,7 +470,7 @@ L<EPrints::DataObj> and L<EPrints::DataSet>.
 
 =begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

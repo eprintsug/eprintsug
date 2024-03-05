@@ -118,7 +118,7 @@ sub validate
 	if( $self->is_required() && !$self->{dataobj}->is_set( $field->{name} ) )
 	{
 		my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-		$fieldname->appendChild( $field->render_name( $self->{session} ) );
+		$fieldname->appendChild( $field->render_name( $self->{session}, $self->{dataobj} ) );
 		my $problem = $self->{session}->html_phrase(
 			"lib/eprint:not_done_field" ,
 			fieldname=>$fieldname );
@@ -149,10 +149,10 @@ sub validate
 			}
 
 			my $fieldname = $self->{session}->make_element( "span", class=>"ep_problem_field:".$field->{name} );
-			$fieldname->appendChild( $field->render_name( $self->{session} ) );
+			$fieldname->appendChild( $field->render_name( $self->{session}, $self->{dataobj} ) );
 			my $problem = $self->{session}->html_phrase(
 				"lib/eprint:not_done_part",
-				partname => $sub_field->render_name( $self->{session} ),
+				partname => $sub_field->render_name( $self->{session}, $self->{dataobj} ),
 				fieldname => $fieldname,
 			);
 			push @problems, $problem;
@@ -271,7 +271,7 @@ sub render_title
 {
 	my( $self, $surround ) = @_;
 
-	return $self->{config}->{field}->render_name( $self->{session} );
+	return $self->{config}->{field}->render_name( $self->{session}, $self->{dataobj} );
 }
 
 =pod
@@ -335,16 +335,16 @@ sub get_field
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -361,5 +361,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -1408,7 +1408,7 @@ sub create_sections_menu
 	my $menu_fields = $menus_fields->[$menu_level];
 
 	my $showvalues = get_showvalues_for_menu( $repo, $view, $sizes, $values, $menu_fields );
-	my $menu = $view->{menus}->[$menu_level-1];
+	my $menu = $view->{menus}->[$menu_level];
 
 	my $grouping_fn = $menu->{grouping_function};
 	$grouping_fn = \&group_by_first_character if( !defined $grouping_fn );
@@ -1695,8 +1695,16 @@ sub render_navigation_aids
 		{
 			$url = "./";
 		}
-		$f->appendChild( $repo->html_phrase( "Update/Views:up_a_level", 
-			url => $repo->render_link( $url ) ) );
+		my $wrapper = $repo->make_element( "div", class=>"no_link_decor" );
+		my $link = $repo->make_element( "a", href=>$url, alt=>$repo->html_phrase( "Update/Views:up_a_level_alt"));
+		my $img = $repo->make_element( "img",
+			src=>$repo->html_phrase( "Update/Views:up_a_level_src"),
+			alt=>$repo->html_phrase( "Update/Views:up_a_level_alt"));
+		my $up_level_phrase = $repo->html_phrase( "Update/Views:up_a_level" );
+		$img->appendChild( $up_level_phrase );
+		$link->appendChild( $img );
+		$wrapper->appendChild( $link );
+		$f->appendChild( $wrapper );
 	}
 
 	if( defined $opts{export_bar} )
@@ -2252,19 +2260,14 @@ sub fieldlist_sizes
 		{
 			my $subject = $subject_map->{$id};
 			next if !defined $subject; # Hmm, unknown subject
-			my %cur_subj_map;
-			my $top = defined $self->{menus}->[0]->{top} ? $self->{menus}->[0]->{top} : '';
-			my $subj_found = $top eq '';
 			foreach my $ancestor (@{$subject->value( "ancestors" )})
 			{
 				next if $ancestor eq $EPrints::DataObj::Subject::root_subject;
-				$subj_found = 1 if $ancestor eq $top;
 				foreach my $item_id (@{$id_map->{$id}})
 				{
-					$cur_subj_map{$ancestor}->{$item_id} = 1;
+					$subj_map{$ancestor}->{$item_id} = 1;
 				}
 			}
-			%subj_map = ( %subj_map, %cur_subj_map ) if $subj_found;
 		}
 
 		# calculate the totals
@@ -2523,16 +2526,16 @@ sub export_plugins
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -2549,5 +2552,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

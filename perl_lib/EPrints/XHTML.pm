@@ -147,7 +147,6 @@ sub form
         {
 		my $csrf_token = $self->{repository}->get_csrf_token();
                 my $csrf_token_input = $self->{repository}->xml->create_element( "input",
-			id => "csrf_token",
 			name => "csrf_token",
 			type => "hidden", 
 			value => $csrf_token,
@@ -208,9 +207,11 @@ sub hidden_field
 {
 	my( $self, $name, $value, @opts ) = @_;
 
+	my %hopts = @opts;
+	push @opts, ( 'id', $name ) unless defined $hopts{id};
+	
 	return $self->{repository}->xml->create_element( "input",
 		name => $name,
-		id => $name,
 		value => $value,
 		type => "hidden",
 		@opts );
@@ -661,10 +662,10 @@ sub page
 		if( $type eq "print" )
 		{
 			my ( $pin, $pinid ) = split /:/, $rest, 2;
-			my $frag;
+			my $frag = $repo->xml->create_document_fragment; 
 			if ( $pin eq "pin" )
 			{
-				$frag = $repo->xml->create_text_node( $map->{$pinid} );
+				$frag = $repo->xml->create_text_node( $map->{$pinid} ) if defined $pinid && defined $map->{$pinid};
 			}
 			else 
 			{
@@ -809,14 +810,12 @@ sub tabs
 	for(0..$#$labels)
 	{
 		my $label = defined($aliases) ? $aliases->{$_} : $_;
-		my $sanit_label = $label;
-		$sanit_label =~ s/[^a-zA-Z0-9_-]/_/g;
 		my $width = int( 100 / @$labels );
 		$width += 100 % @$labels if $_ == 0;
 		my $tab = $ul->appendChild( $xml->create_element( "li",
 			($current == $_ ? (class => "ep_tab_selected") : ()),
-			id => $basename."_tab_".$sanit_label,
-			role => "tab",
+			id => $basename."_tab_".$_,
+			role => "none",
 			style => "width: $width\%",
 		) );
 
@@ -833,18 +832,24 @@ sub tabs
 		{
 			$href = $links->{$label};
 		}
-#		$href->fragment( "ep_tabs:".$basename.":".$_ );
 
 		my $link = $tab->appendChild( $xml->create_data_element( "a",
 			$labels->[$_],
 			href => $href,
 			onclick => "return ep_showTab('$basename','$label',".($expensive{$_}?1:0).");",
+			class => "ep_tab_link",
+			role => "tab",
+			"aria-selected" => ( $current == $_ ? "true" : "false" ),
+			"aria-controls" => $basename."_panel_".$_,
+			tabindex => "-1",
 		) );
 
 		if( defined $panel )
 		{
 			my $inner_panel = $xml->create_element( "div", 
-				id => $basename."_panel_".$sanit_label,
+				id => $basename."_panel_".$_,
+				role => "tabpanel",
+				"aria-labelledby" => $basename."_panel_".$_,
 			);
 			if( $_ != $current )
 			{
@@ -927,7 +932,7 @@ sub tree2
 			if ( ref($key) eq "EPrints::DataObj::Subject" ) 
 			{
 				my $subjectid = $key->get_id;
-				$subjectid =~ s/[^a-zA-Z0-9_-]/_/g;
+				$subjectid = EPrints::Utils::sanitise_element_id( $subjectid );
 				$dt_attrs{id} = "ep_subj_title_" . $subjectid;
 				$dd_attrs{id} = "ep_subj_desc_" . $subjectid;
 			}
@@ -973,7 +978,7 @@ sub action_list
 	my $ul = $xml->create_element( "ul", class => "ep_action_list", role => "toolbar" );
 	for(@$actions)
 	{
-		$ul->appendChild( $xml->create_data_element( "li", $_ ) );
+		$ul->appendChild( $xml->create_data_element( "li", $_, role => "none" ) );
 	}
 
 	return $ul;
@@ -999,7 +1004,7 @@ sub action_definition_list
 	for(my $i = 0; $i < @$actions; ++$i)
 	{
 		$dl->appendChild( $xml->create_data_element( "dt", $actions->[$i], role=>"menuitem", "aria-describedby"=>"ep_".$opts{id}."_desc_$i" ) );
-		$dl->appendChild( $xml->create_data_element( "dd", $definitions->[$i], id=>"ep_".$opts{id}."_desc_$i", role=>"description" ) );
+		$dl->appendChild( $xml->create_data_element( "dd", $definitions->[$i], id=>"ep_".$opts{id}."_desc_$i", role=>"none" ) );
 	}
 
 	return $dl;
@@ -1032,16 +1037,16 @@ END
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -1058,5 +1063,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 
