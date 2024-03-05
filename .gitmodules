@@ -6,4 +6,4 @@
 	url = https://github.com/eprintsug/gitaar
 [submodule "ingredients/material"]
 	path = ingredients/material
-	url = https://cziaarm@bitbucket.org/ulcc-art/material.git
+	url = https://bitbucket.org/ulcc-art/material.git
