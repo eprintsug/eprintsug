@@ -78,21 +78,35 @@ $c->{email_for_doc_request} = sub
 #}
 
 
-# The expiry for a document request (in days)
+# The expiry for the download link for accepted document request (in days)
 # $c->{expiry_for_doc_request} = 7;
+
+# The expiry for document requests if they are not responded (in days)
+# $c->{expiry_for_unresponded_doc_request} = 90;
+
+# Use a pin-based security model for contact authors responding to
+# copy requests?
+#
+# The pin-based model allows the contact author to respond whether
+# they have an EPrints account associated with the specified email
+# address or not. The normal repository authentication mechanism is
+# not used, instead the presence of a random pin in the querystring
+# identifies the contact author and grants access.
+#
+# $c->{use_request_copy_pin_security} = 1;
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -109,5 +123,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

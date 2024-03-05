@@ -139,6 +139,13 @@ $c->{extract_words} = sub
 		{
 			$ok = 1;
 		}
+		# If the word is longer than 128 characters then this is
+		# too long to index and is unlikely to be worth truncating
+		# so it can be indexed.
+		if ( $ok && $wordlen > 128 )
+		{
+			$ok = 0;
+		}
 	
 		# Add this word to the good list or the bad list
 		# as appropriate.	
@@ -180,16 +187,16 @@ $c->{extract_words} = sub
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -206,5 +213,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

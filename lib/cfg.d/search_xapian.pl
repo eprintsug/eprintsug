@@ -1,3 +1,6 @@
+# Do not index the full text from documents if they are not publicly downloadable
+$c->{xapian_index_restricted_fulltext} = 0;
+
 if( EPrints::Utils::require_if_exists( "Search::Xapian" ) )
 {
 my $FLUSH_LIMIT = 1000;
@@ -81,6 +84,7 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 		next if $field->isa( "EPrints::MetaField::Langid" );
 		next if $field->isa( "EPrints::MetaField::Subobject" );
 		next if $field->isa( "EPrints::MetaField::Storable" );
+		next unless $field->get_property( "text_index" );
 
 		my $prefix = $field->name . ':';
 		my $value = $field->get_value( $dataobj );
@@ -132,11 +136,13 @@ $c->add_trigger( EP_TRIGGER_INDEX_FIELDS, sub {
 	{
 		my $convert = $repo->plugin( "Convert" );
 		my $tempdir = File::Temp->newdir();
+		my $index_restricted_fulltext = $repo->config( "xapian_index_restricted_fulltext" ) || 0;
 		DOC: foreach my $doc ($dataobj->get_all_documents)
 		{
 			my $type = "text/plain";
 			my %types = $convert->can_convert( $doc, $type );
 			next DOC if !exists $types{$type};
+			next DOC unless $doc->get_value( 'security' ) eq "public" || $index_restricted_fulltext;
 			my $plugin = $types{$type}->{plugin};
 			FILE: foreach my $fn ($plugin->export( $tempdir, $doc, $type ))
 			{
@@ -195,16 +201,16 @@ $c->add_trigger( EP_TRIGGER_INDEX_REMOVED, sub {
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -221,5 +227,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

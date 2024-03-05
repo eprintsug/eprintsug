@@ -13,11 +13,11 @@
 
 =head1 NAME
 
-EPrints::Apache::RobotsTxt
+B<EPrints::Apache::RobotsTxt> - Generates a dynamic robots.txt.
 
 =head1 DESCRIPTION
 
-Generate a dynamic output for request of /robots.txt
+Generate a dynamic output for request of F</robots.txt>
 
 =head1 METHODS
 
@@ -38,7 +38,7 @@ use warnings;
 =item $rc = EPrints::Apache::RobotsTxt::handler( $r )
 
 Handler for managing EPrints requests for dynamically generated
-robots.txt.
+F<robots.txt>.
 
 =cut
 ######################################################################
@@ -53,6 +53,7 @@ sub handler
 	my $langid = EPrints::Session::get_session_language( $repository, $r );
 	my @static_dirs = $repository->get_static_dirs( $langid );
 	my $robots;
+
 	foreach my $static_dir ( @static_dirs )
 	{
 		my $file = "$static_dir/robots.txt";
@@ -77,6 +78,40 @@ END
 		}
 	}
 
+	my @lines = split( '\n', $robots );
+	my $lineno = 0;
+	my $default_ua_config = "";
+	while ( lc( $lines[$lineno] ) !~ /user-agent: \*/ )
+	{
+		$lineno++;
+	}
+	$lineno++;
+	while ( $lines[$lineno] !~ /^\s*$/ )
+	{
+		$default_ua_config .= $lines[$lineno] ."\n";
+		$lineno++;
+	}
+
+	my $crawl_delay_default_secs = $repository->config( 'robotstxt', 'crawl_delay', 'default_seconds' ) || 0;
+	my $crawl_delay_secs = $repository->config( 'robotstxt', 'crawl_delay', 'seconds' ) || 10;
+	my $crawl_delay_uas = $repository->config( 'robotstxt', 'crawl_delay', 'user_agents' ) || [];
+	
+	$robots .= "\n" if $crawl_delay_default_secs || EPrints::Utils::is_set( $crawl_delay_uas );
+	
+	foreach my $ua ( @$crawl_delay_uas )
+	{
+		$robots .= "User-agent: $ua\n";
+	}
+	if ( EPrints::Utils::is_set( $crawl_delay_uas ) )
+	{
+		$robots .= "$default_ua_config" . "Crawl-delay: $crawl_delay_secs\n\n";	
+	}
+
+	if( $crawl_delay_default_secs )
+	{
+		$robots .= "User-agent: *\nCrawl-delay: $crawl_delay_default_secs\n\n";
+	}
+
 	my $sitemap = "Sitemap: ".$repository->config( 'base_url' )."/sitemap.xml";
 
 	# Only add standard sitemap if it is not already added.
@@ -97,20 +132,23 @@ END
 
 1;
 
+######################################################################
+=pod
+
 =back
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=befin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -127,5 +165,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

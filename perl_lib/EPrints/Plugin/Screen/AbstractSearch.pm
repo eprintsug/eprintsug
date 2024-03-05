@@ -271,6 +271,8 @@ sub from
 			 $self->{processor}->{sconf}->{order_methods}->{$self->{processor}->{sconf}->{default_order}};
 	}
 
+	$self->{processor}->{search}->{show_hidden} = defined $self->{session}->param( "showhidden" ) && $self->search_dataset->has_field( "metadata_visibility" );
+
 	# do actions
 	$self->SUPER::from;
 
@@ -544,13 +546,13 @@ sub render_export_bar
 	$button->appendChild( $session->render_button(
 			name=>"_action_export_redir",
 			value=>$session->phrase( "lib/searchexpression:export_button" ) ) );
-	$button->appendChild( $self->render_hidden_bits );
+	$button->appendChild( $self->render_hidden_bits( "export" ) );
 	$button->appendChild( 
-		$session->render_hidden_field( "order", $order ) ); 
+		$session->render_hidden_field( "order", $order, "order_export" ) ); 
 	$button->appendChild( 
-		$session->render_hidden_field( "cache", $cacheid ) ); 
+		$session->render_hidden_field( "cache", $cacheid, "cache_export" ) ); 
 	$button->appendChild( 
-		$session->render_hidden_field( "exp", $escexp, ) );
+		$session->render_hidden_field( "exp", $escexp, "exp_export" ) );
 
 	my $form = $self->{session}->render_form( "GET" );
 	$form->appendChild( $session->html_phrase( "lib/searchexpression:export_section",
@@ -624,16 +626,17 @@ sub paginate_opts
 	my $order_div = $self->{session}->make_element( "div", class=>"ep_search_reorder" );
 	my $form = $self->{session}->render_form( "GET" );
 	$order_div->appendChild( $form );
-	$form->appendChild( $self->{session}->html_phrase( "lib/searchexpression:order_results" ) );
-	$form->appendChild( $self->{session}->make_text( ": " ) );
-	$form->appendChild( $self->render_order_menu( ( auto_submit => 1 ) ) );
-
+	my $order_label = $self->{session}->make_element( "label" );
+	$order_label->appendChild( $self->{session}->html_phrase( "lib/searchexpression:order_results" ) );
+	$order_label->appendChild( $self->{session}->make_text( ": " ) );
+	$order_label->appendChild( $self->render_order_menu( ( auto_submit => 1 ) ) );
+	$form->appendChild( $order_label );
 	$form->appendChild( $self->{session}->render_button(
 			name=>"_action_search",
 			value=>$self->{session}->phrase( "lib/searchexpression:reorder_button" ) ) );
-	$form->appendChild( $self->render_hidden_bits );
+	$form->appendChild( $self->render_hidden_bits( "order" ) );
 	$form->appendChild( 
-		$self->{session}->render_hidden_field( "exp", $escexp, ) );
+		$self->{session}->render_hidden_field( "exp", $escexp, "exp_order" ) );
 
 	return (
 		pins => \%bits,
@@ -731,9 +734,29 @@ sub render_search_form
 
 	$table->appendChild( $self->render_order_field );
 
+    if ( $self->{processor}->{sconf}->{staff} )
+    {
+        $table->appendChild( $self->render_show_hidden );
+    }
+
 	$form->appendChild( $self->render_controls );
 
 	return( $form );
+}
+
+sub render_hidden_bits
+{
+    my( $self, $idsuffix ) = @_;
+
+    my $chunk = $self->{session}->make_doc_fragment;
+	if ( $self->repository->param( 'search_offset' ) )
+	{
+		my $search_offset_id = $idsuffix ? "search_offset_$idsuffix" : "search_offset";
+    	$chunk->appendChild( $self->{session}->render_hidden_field( "search_offset", $self->repository->param( 'search_offset' ), $search_offset_id ) );
+	}
+    $chunk->appendChild( $self->SUPER::render_hidden_bits( $idsuffix ) );
+
+    return $chunk;
 }
 
 sub render_preamble
@@ -757,26 +780,24 @@ sub render_search_fields
 
 	foreach my $sf ( $self->{processor}->{search}->get_non_filter_searchfields )
 	{
-		my $label;
 		my $field;
 		my $ft = $sf->{"field"}->get_type();
+		my $prefix = $sf->get_form_prefix;
 		if ( ( $ft eq "set" || $ft eq "namedset" ) && $sf->{"field"}->{search_input_style} eq "checkbox" )
 		{
-			$label = EPrints::Utils::tree_to_utf8( $sf->render_name );
-			$field = $sf->render( legend => $label . ':' );
+			$field = $sf->render( legend => EPrints::Utils::tree_to_utf8( $sf->render_name ) . " " . EPrints::Utils::tree_to_utf8( $self->{session}->html_phrase( "lib/searchfield:desc:set_legend_suffix" ) ) );
+			$prefix .= "_legend"; 
 		}
 		else {
-			$label = $self->{session}->make_element( "span", id=>$sf->get_form_prefix."_label" );
-			$label->appendChild( $sf->render_name );
 			$field = $sf->render();
 		}
 
 		$frag->appendChild(
 			$self->{session}->render_row_with_help(
-				prefix => $sf->get_form_prefix, 
+				prefix => $prefix,
 				help_prefix => $sf->get_form_prefix."_help",
 				help => $sf->render_help,
-				label => $label,
+				label => $sf->render_name,
 				field => $field,
 				no_toggle => ( $sf->{show_help} eq "always" ),
 				no_help => ( $sf->{show_help} eq "never" ),
@@ -809,13 +830,34 @@ sub render_anyall_field
 				  "ANY" => $self->{session}->phrase( 
 						"lib/searchexpression:any" )} );
 
-	my $label = $self->{session}->make_element( 'span', id=>"satisfyall_label" );
-	$label->appendChild( $self->{session}->html_phrase( "lib/searchexpression:must_fulfill" ) );
 	return $self->{session}->render_row_with_help( 
 			no_help => 1,
-			label => $label,
+			label => $self->{session}->html_phrase( "lib/searchexpression:must_fulfill" ),
 			field => $menu,
+			prefix => 'satisfyall',
 	);
+}
+
+sub render_show_hidden
+{
+    my( $self ) = @_;
+
+    my $checkbox = $self->{session}->render_noenter_input_field(
+        type => "checkbox",
+        checked => undef,
+        name => "showhidden",
+        value => "TRUE",
+        'aria-labelledby' => "showhidden_label",
+    	'aria-describedby' => "showhidden_help"
+    );
+
+    return $self->{session}->render_row_with_help(
+			prefix => "showhidden",
+            label => $self->{session}->html_phrase( "lib/searchexpression:showhidden" ),
+            help => $self->{session}->html_phrase( "lib/searchexpression:showhidden_help" ),
+			help_prefix => "showhidden_help",
+            field => $checkbox
+    );
 }
 
 sub render_controls
@@ -833,8 +875,6 @@ sub render_controls
 	return $div;
 }
 
-
-
 sub render_order_field
 {
 	my( $self ) = @_;
@@ -843,7 +883,8 @@ sub render_order_field
 			no_help => 1,
 			label => $self->{session}->html_phrase( 
 				"lib/searchexpression:order_results" ),  
-			field => $self->render_order_menu,
+			field => $self->render_order_menu( 'aria-labelledby' => 'order_label' ),
+			prefix => 'order',
 	);
 }
 
@@ -871,8 +912,8 @@ sub render_order_menu
                 values=>[values %{$methods}],
                 default=>$order,
                 labels=>\%labels,
-                'aria-labelledby'=>"order_label"
 	);
+	$attrs{'aria-labelledby'} = defined $opts{'aria-labelledby'} ? $opts{'aria-labelledby'} : undef;
 	$attrs{onchange} = "this.form.submit();" if $opts{auto_submit} && $self->{session}->config( 'order_auto_submit' );
 	return $self->{session}->render_option_list( %attrs );
 }
@@ -972,16 +1013,16 @@ sub export_mimetype
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -998,5 +1039,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -383,29 +383,31 @@ sub _render_doc_div
 	my $opts_toggle = $session->make_element( "a", onclick => "EPJS_blur(event); EPJS_toggleSlideScroll('${doc_prefix}_opts',".($hide?"false":"true").",'${doc_prefix}_block');EPJS_toggle('${doc_prefix}_opts_hide',".($hide?"false":"true").",'block');EPJS_toggle('${doc_prefix}_opts_show',".($hide?"true":"false").",'block');return false" );
 	$doc_expansion_bar->appendChild( $opts_toggle );
 
-	my $s_options = $session->make_element( "div", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide"),  );
-	my $show_label = $session->make_element( "label", id=>$doc_prefix."_opts_show_label" );
+	my $s_options = $session->make_element( "div", id=>$doc_prefix."_opts_show", class=>"ep_update_doc_options ".($hide?"":"ep_hide") );
+	my $show_label = $session->make_element( "label", for=>$doc_prefix."_opts_show_button" );
 	$show_label->appendChild( $self->html_phrase( "show_options" ) );
 	$s_options->appendChild( $show_label );
 	$s_options->appendChild( $session->make_text( " " ) );
 	$s_options->appendChild( 
-			$session->make_element( "img",
+			$session->make_element( "input",
+			    type=>'image',
 				src=>"$imagesurl/style/images/plus.png",
 				alt=>'+',
-				'aria-labelledby'=>$doc_prefix."_opts_show_label",
+				id=>$doc_prefix."_opts_show_button",
 				) );
 	$opts_toggle->appendChild( $s_options );
 
 	my $h_options = $session->make_element( "div", id=>$doc_prefix."_opts_hide", class=>"ep_update_doc_options ".($hide?"ep_hide":"") );
-	my $hide_label = $session->make_element( "label", id=>$doc_prefix."_opts_hide_label" );
-        $hide_label->appendChild( $self->html_phrase( "show_options" ) );
-        $h_options->appendChild( $hide_label );
+	my $hide_label = $session->make_element( "label", for=>$doc_prefix."_opts_hide_button" );
+	$hide_label->appendChild( $self->html_phrase( "hide_options" ) );
+	$h_options->appendChild( $hide_label );
 	$h_options->appendChild( $session->make_text( " " ) );
 	$h_options->appendChild( 
-			$session->make_element( "img",
+			$session->make_element( "input",
+			    type=>'image',
 				src=>"$imagesurl/style/images/minus.png",
 				alt=>'-',
-				'aria-labelledby'=>$doc_prefix."_opts_hide_label",
+				id=>$doc_prefix."_opts_hide_button",
 				) );
 	$opts_toggle->appendChild( $h_options );
 
@@ -595,18 +597,20 @@ sub _render_doc_metadata
 		my $labeltext = $field->render_name($session);
 		if( $field->{required} ) # moj: Handle for_archive
 		{
-			$labeltext = $self->{session}->html_phrase( 
-				"sys:ep_form_required",
-				label=>$labeltext );
+                        my $required = $self->{session}->make_element( "img",
+                                src => $self->{session}->html_phrase( "sys:ep_form_required_src" ),
+                                class => "ep_required",
+                                alt => $self->{session}->html_phrase( "sys:ep_form_required_alt" ));
+                        $required->appendChild( $self->{session}->make_text( " " ) );
+                        $required->appendChild( $labeltext );
+                        $labeltext = $required;
 		}
 		$no_toggle = 1 if $field->{show_help} eq "always";
 		$no_toggle = 0 if $field->{show_help} eq "toggle";
 		$no_help = 1 if $field->{show_help} eq "never";
-		my $label = $self->{session}->make_element( "span", id => $field->get_name . "_label" );
-		$label->appendChild( $labeltext );
 		
 		$table->appendChild( $session->render_row_with_help(
-			label=>$label,
+			label=>$labeltext,
 			field=>$field->render_input_field(
 								$session,
 								$doc->get_value( $field->get_name ),
@@ -762,16 +766,16 @@ sub parse_config
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -788,5 +792,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

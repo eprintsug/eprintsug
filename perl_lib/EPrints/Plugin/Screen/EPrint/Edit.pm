@@ -86,7 +86,16 @@ sub from
 		{
 			$self->workflow->update_from_form( $self->{processor}, undef, 1 );
 		}
-		$self->workflow->{item}->commit;
+
+		my $button_id = $self->{processor}->{internal};
+
+		if(( $button_id !~ /_morespaces$/ ) &&
+		   ( $button_id !~ /_up_[0-9]+$/ ) &&
+		   ( $button_id !~ /_down_[0-9]+$/ ))
+		{
+			$self->workflow->{item}->commit;
+		}
+
 		$self->uncache_workflow;
 		return;
 	}
@@ -286,12 +295,12 @@ sub render
 
 	if( $action_buttons eq "top" || $action_buttons eq "both" )
 	{
-		$form->appendChild( $self->render_buttons );
+		$form->appendChild( $self->render_buttons( "top" ) );
 	}
 	$form->appendChild( $self->workflow->render );
 	if( $action_buttons eq "bottom" || $action_buttons eq "both" )
 	{
-		$form->appendChild( $self->render_buttons );
+		$form->appendChild( $self->render_buttons( "bottom" ) );
 	}
 	
 	return $form;
@@ -300,11 +309,18 @@ sub render
 
 sub render_buttons
 {
-	my( $self ) = @_;
+	my( $self, $position ) = @_;
 
 	my $session = $self->{session};
 
-	my %buttons = ( _order=>[], _class=>"ep_form_button_bar" );
+	my $class = "ep_form_button_bar";
+
+	if( defined( $position ))
+	{
+		$class .= " ep_form_button_bar_$position";
+	}
+
+	my %buttons = ( _order=>[], _class=> $class );
 
 	if( defined $self->workflow->get_prev_stage_id )
 	{
@@ -361,16 +377,16 @@ sub hidden_bits
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -387,5 +403,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

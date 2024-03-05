@@ -24,7 +24,7 @@ sub new
 		},
 		{
 			place => "eprint_actions_bar_buffer", 
-			position => 200,
+			position => 300,
 		},
 		{
 			place => "eprint_review_actions",
@@ -248,8 +248,8 @@ sub action_send
 		$content = $self->{session}->html_phrase( 
 			"mail_delete_body",
 			title => $title, 
-			reason => $self->{session}->make_text( 
-				$self->{session}->param( "reason" ) ) );
+			reason => EPrints::Extras::render_paras( $self->{session}, "reason", scalar( $self->{session}->param( "reason" ) ) )
+		);
 
 		$user->mail(
 			"cgi/users/edit_eprint:subject_bounce",
@@ -278,16 +278,16 @@ sub action_send
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -304,5 +304,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

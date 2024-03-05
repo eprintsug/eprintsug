@@ -264,8 +264,8 @@ sub get_eprint_by_identifier
 	my $searchexp = $dataset->prepare_search;
 
 	$searchexp->add_field(
-		$dataset->field( "eprint_status" ),
-		"archive deletion",
+		$dataset->field( "datestamp" ),
+		"1970-01-01-",
 		"EQ",
 		"ANY"
 	);
@@ -411,8 +411,8 @@ sub Identify
 		limit => 1,
 	);
 	$searchexp->add_field(
-		$dataset->field( "eprint_status" ),
-		"archive deletion",
+		$dataset->field( "datestamp" ),
+		"1970-01-01-",
 		"EQ",
 		"ANY"
 	);
@@ -519,11 +519,14 @@ sub Identify
 		"submissionPolicy", 
 		$repo->config( "oai","submission_policy" ) ) );
 
-	foreach( @{$repo->config( "oai","comments" )} ) 
+	if( $repo->config( "oai","comments" ) )
 	{
-		$eprints->appendChild( $repo->xhtml->data_element(
-			"comment", 
-			$_ ) );
+		foreach( @{$repo->config( "oai","comments" )} ) 
+		{
+			$eprints->appendChild( $repo->xhtml->data_element(
+				"comment", 
+				$_ ) );
+		}
 	}
 		
 	return ();
@@ -776,8 +779,8 @@ sub _list
 	$filters = [] unless defined $filters;
 
 	push @$filters, {
-		meta_fields => [qw( eprint_status )],
-		value => "archive deletion",
+		meta_fields => [qw( datestamp )],
+		value => "1970-01-01-",
 		match => "EQ",
 		merge => "ANY",
 	};
@@ -804,6 +807,12 @@ sub _list
 			custom_order => "eprintid",
 			limit => ($PAGESIZE+1) );
 
+	my $fullsearchexp = $ds->prepare_search(
+            allow_blank => 1,
+            filters => [
+                @{$filters},
+            ] );	
+
 	if( defined $args->{offset} )
 	{
 		my $offset = sprintf("%d..", $args->{offset});
@@ -823,6 +832,7 @@ sub _list
 	if( defined $date_range )
 	{
 		$searchexp->add_field( $DATESTAMP_FIELD, $date_range );
+		$fullsearchexp->add_field( $DATESTAMP_FIELD, $date_range );
 	}
 
 	if( defined $args->{set} )
@@ -865,6 +875,7 @@ END
 		}
 		$value = $fields[0]->get_value_from_id( $repo, $value );
 		$searchexp->add_field( \@fields, $value, $match );
+		$fullsearchexp->add_field( \@fields, $value, $match );
 	}
 	
 	if( !defined $searchexp )
@@ -877,6 +888,7 @@ END
 	}
 	
 	my $list = $searchexp->perform_search();
+    my $fulllist = $fullsearchexp->perform_search();
 	my @records = $list->slice( 0, $PAGESIZE );
 
 	if( @records == 0 )
@@ -927,7 +939,9 @@ END
 		$response->appendChild( $repo->xhtml->data_element(
 			"resumptionToken",
 			serialise_resumptiontoken( $repo, \%token ),
-			expirationDate => EPrints::Time::get_iso_timestamp( time + 86400 )
+			expirationDate => EPrints::Time::get_iso_timestamp( time + 86400 ),
+			completeListSize => $fulllist->count,
+			cursor => $args->{offset} ? $args->{offset} : 0,
 			) );
 	}
 

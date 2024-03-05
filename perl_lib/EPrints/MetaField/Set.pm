@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Set;
+# EPrints::MetaField::Set
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -235,8 +237,14 @@ sub render_set_input
 
 	if( $input_style eq "short" )
 	{
+		my $legend = undef;
+		if ( $self->{form_input_style} eq "checkbox" )
+		{
+                	$legend = $session->make_text( EPrints::Utils::tree_to_utf8( $self->render_name( $self->{session} ) ) . EPrints::Utils::tree_to_utf8( $session->html_phrase( "lib/metafield/set:legend_suffix" ) ) );
+		}
 		return( $session->render_option_list(
 				checkbox => ($self->{form_input_style} eq "checkbox" ?1:0),
+				legend => $legend,		
 				values => $tags,
 				labels => $labels,
 				name => $basename,
@@ -259,8 +267,8 @@ sub render_set_input
 	else
 	{
 		$list = $session->make_element( "fieldset", class=>"ep_option_list" );
-		my $legend = $session->make_element( "legend", id=> $basename."_label", class=>"ep_field_legend" );
-	        my $legendtext = $self->render_name( $self->{session} );
+		my $legend = $session->make_element( "legend", id=> $basename."_label", class=>"ep_field_legend", "aria-labelledby" => $basename."_legend_label" );
+	        my $legendtext = $session->make_text( EPrints::Utils::tree_to_utf8( $self->render_name( $self->{session} ) ) . EPrints::Utils::tree_to_utf8( $session->html_phrase( "lib/metafield/set:legend_suffix" ) ) );
         	if( $self->{required} )
 	        {
         	        $legend->appendChild( $session->html_phrase(
@@ -328,14 +336,15 @@ sub render_set_input
 				$row->appendChild( $session->render_noenter_input_field(
 	                                type => $type,
         	                        name => $basename,
+                                        title => $labels->{$opt},
                 	                id => $basename."_".$opt,
                         	        value => $opt,
                                 	class => join(" ", @classes),
 	                                checked => $checked,
-        	                        'aria-labelledby' => $basename."_".$opt."_title",
+                                        'aria-labelledby' => $basename."_".$opt."_label",
                 	        ) );
 	                        $dd = $session->make_element( "dd", id=>$basename."_".$opt."_label", 'aria-describedby'=>$self->get_labelledby( $basename ) );
-				$dd->appendChild( $session->make_text( " ".$labels->{$opt} ) );
+				$dd->appendChild( $session->make_text( $labels->{$opt} ) );
 			}
 			$list->appendChild( $row );
                         $list->appendChild( $dd );
@@ -437,6 +446,11 @@ sub split_search_value
 sub render_search_input
 {
 	my( $self, $session, $searchfield, %opts ) = @_;
+
+	if( defined $self->{render_search_input} )
+	{
+		return $self->call_property( "render_search_input", $self, $session, $searchfield );
+	}
 
 	my $frag = $session->make_doc_fragment;
 	
@@ -622,7 +636,6 @@ sub get_property_defaults
 	$defaults{input_tags} = $EPrints::MetaField::UNDEF;
 	$defaults{render_option} = $EPrints::MetaField::UNDEF;
 	$defaults{render_max_search_values} = 5;
-	$defaults{text_index} = 1;
 	$defaults{sql_index} = 1;
 	$defaults{match} = "EQ";
 	$defaults{merge} = "ANY";
@@ -669,16 +682,16 @@ sub render_xml_schema_type
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -695,5 +708,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

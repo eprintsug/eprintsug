@@ -271,11 +271,9 @@ sub input_text_fh
 	
 	while(my $entry = $parser->next)
 	{
-		if( !$entry->parse_ok )
-		{
-			$plugin->warning( "Error parsing: " . $entry->error );
-			next;
-		}
+
+		$plugin->warning( "Error parsing: " . $entry->error ) if defined $entry->error;
+		next if !$entry->parse_ok;
 
 		my $epdata = $plugin->convert_input( $entry );
 		next unless defined $epdata;
@@ -360,7 +358,8 @@ sub convert_input
 	if( $type eq "PHDTHESIS" )
 	{
 		$epdata->{type} = "thesis";
-		$epdata->{thesis_type} = "phd";
+		$epdata->{thesis_type} = "doctoral";
+		$epdata->{thesis_name} = "phd";
 	}
 	if( $type eq "UNPUBLISHED" )
 	{
@@ -584,7 +583,7 @@ sub _decode_bibtex
 
 =for COPYRIGHT BEGIN
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

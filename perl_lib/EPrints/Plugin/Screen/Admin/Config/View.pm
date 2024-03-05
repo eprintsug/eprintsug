@@ -87,7 +87,7 @@ sub render
 	my $doc_link = $self->{session}->render_link("http://eprints.org/d/?keyword=${1}ConfigFile&filename=".$self->{processor}->{configfile});
 	$page->appendChild( $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/View:documentation", link=>$doc_link ));
 
-	if( $edit_screen->can_be_viewed )
+	if( defined $edit_screen && $edit_screen->can_be_viewed )
 	{
 		my $edit_config_button = $edit_screen->render_action_button( {
 			screen => $edit_screen,
@@ -99,6 +99,13 @@ sub render
 		my $buttons = $self->{session}->make_element( "div" );
 		$buttons->appendChild( $edit_config_button );
 		$page->appendChild( $edit_config_button );
+	}
+	elsif ( $self->{session}->get_repository->get_conf( "plugins", $edit_screen_id, "params", "disable" ) )
+	{
+		my $content = $self->{session}->html_phrase( "Plugin/Screen/Admin/Config/View:enable_plugin",
+			plugin => $self->{session}->make_text( $edit_screen_id ),
+		);
+		$page->appendChild( $self->{session}->render_message( "warning", $content ) );
 	}
 	else
 	{
@@ -151,16 +158,16 @@ sub register_furniture
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -177,5 +184,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -25,6 +25,10 @@ sub new
 	# don't make it up as a tab. eg. EPrint::History.
 	$params{expensive} = exists $params{expensive} ? $params{expensive} : 0; 
 
+	# Set template for screen to default_internal unless already configured
+	# by specific screen plugin.
+	$params{template} = "default_internal" unless defined $params{template};
+
 	return $class->SUPER::new(%params);
 }
 
@@ -94,15 +98,20 @@ sub hidden_bits
 
 sub render_hidden_bits
 {
-	my( $self ) = @_;
+	my( $self, $idsuffix ) = @_;
 
 	my $chunk = $self->{session}->make_doc_fragment;
 
 	my @params = $self->hidden_bits;
 	for(my $i = 0; $i < @params; $i+=2)
 	{
+		my $name = $params[$i];
+		my $value = $params[$i+1];
+		my $id = $idsuffix ? $name . "_" . $idsuffix : $name;
 		$chunk->appendChild( $self->{session}->render_hidden_field( 
-				@params[$i,$i+1]
+				$name,
+				$value,
+				$id
 			) );
 	}
 
@@ -132,11 +141,11 @@ sub export_mimetype
 	
 sub render_form
 {
-	my( $self ) = @_;
+	my( $self, $idsuffix ) = @_;
 
 	my $form = $self->{session}->render_form( "post", $self->{processor}->{url}."#t" );
 
-	$form->appendChild( $self->render_hidden_bits );
+	$form->appendChild( $self->render_hidden_bits( $idsuffix ) );
 
 	return $form;
 }
@@ -387,7 +396,8 @@ sub render_action_link
 		screen => substr($self->{id},8),
 	);
 
-	my $link = $self->{session}->render_link( $uri );
+	$opts{class} = "ep_tm_key_tools_item_link" if not defined $opts{class}; 
+	my $link = $self->{session}->render_link( $uri, undef, %opts );
 	$link->appendChild( $self->render_title );
 
 	return $link;
@@ -465,6 +475,7 @@ sub _render_action_aux
 			$frag->appendChild( $session->make_element( "img",
 				src=>$icon,
 				alt=>$title,
+				title=>$title . $session->phrase( "Plugin/Screen:render_action_img_suffix" ),
 				class=>"ep_form_action_icon",
 				role=>"button",
 			) );
@@ -483,8 +494,14 @@ sub _render_action_aux
 		foreach my $i (0..$#query)
 		{
 			next if $i % 2;
+			my $hidden_name = $query[$i];
+			my $hidden_value = $query[$i+1];
+			my $hidden_id = $hidden_name . "_".$hidden_value;
+			$hidden_id .= "_" . $params->{screen_id} unless $hidden_name eq "screen";
+			$hidden_id .= "_" . $params->{action} if defined $params->{action} && $hidden_name ne "action";
+			$hidden_id .= defined $params->{idsuffix} ? "_" .$params->{idsuffix} : "";
 			$frag->appendChild( $session->render_hidden_field( 
-				@query[$i, $i+1] ) );
+				$hidden_name, $hidden_value, $hidden_id  ) );
 		}
 		if( defined $icon && $asicon )
 		{
@@ -537,7 +554,7 @@ sub render_action_list
 	my( @actions, @definitions );
 	foreach my $params ($self->action_list( $list_id ))
 	{
-		push @actions, $self->render_action_button( { %$params, hidden => $hidden } );
+		push @actions, $self->render_action_button( { %$params, hidden => $hidden, idsuffix => $list_id } );
 		push @definitions, $self->get_description( $params );
 	}
 
@@ -554,10 +571,10 @@ sub render_action_list_bar
 	my @actions;
 	foreach my $params ($self->action_list( $list_id ))
 	{
-		push @actions, $self->render_action_button( { %$params, hidden => $hidden } );
+		push @actions, $self->render_action_button( { %$params, hidden => $hidden, idsuffix => $list_id } );
 	}
 
-	my $div = $repo->xml->create_element( "div", class => "ep_block" );
+	my $div = $repo->xml->create_element( "div", class => "ep_block", role => "toolbar" );
 	$div->appendChild( $repo->xhtml->action_list( \@actions ) );
 
 	return $div;
@@ -573,7 +590,8 @@ sub render_action_list_icons
 	my @actions;
 	foreach my $params ($self->action_list( $list_id ))
 	{
-		push @actions, $self->render_action_icon( { %$params, hidden => $hidden } );
+		my $idsuffix = ref( $hidden ) eq "HASH" && defined $hidden->{eprintid} ? $list_id . "_" . $hidden->{eprintid} : $list_id;
+		push @actions, $self->render_action_icon( { %$params, hidden => $hidden, idsuffix => $idsuffix } );
 	}
 
 	return $repo->xhtml->action_list( \@actions );
@@ -586,16 +604,16 @@ sub render_action_list_icons
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -612,5 +630,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

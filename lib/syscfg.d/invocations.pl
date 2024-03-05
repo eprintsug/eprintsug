@@ -5,11 +5,11 @@ my %invocations = (
 	 'convert_crop_white' => '$(convert) -crop 0x0 -bordercolor white -border 4x4 $(SOURCE) $(TARGET)',
 	 'dvips' => '$(dvips) $(SOURCE) -o $(TARGET)',
 	 'sendmail' => '$(sendmail) -oi -t -odb --',
-	 'elinks' => '$(elinks) -dump 1 -dump-charset UTF-8 $(SOURCE) > $(TARGET)',
+	 'html2text' => '$(html2text) --images-to-alt --unicode-snob $(SOURCE) > $(TARGET)',
 	 'latex' => '$(latex) -no-shell-escape -output-directory=$(TARGET) $(SOURCE)',
 	 'targz' => '$(gunzip) -c < $(ARC) 2>/dev/null | $(tar) xf - -C $(DIR) >/dev/null 2>&1',
 	 'antiwordpdf' => '$(antiword) -a a4 -m 8859-1 $(SOURCE) > $(TARGET)',
-	 'pdftotext' => '$(pdftotext) -enc UTF-8 -layout $(SOURCE) $(TARGET)',
+	 'pdftotext' => '$(pdftotext) -q -enc UTF-8 -layout $(SOURCE) $(TARGET)',
 	 'zip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -d $(DIR) $(ARC)',
 	 'unzip' => '$(unzip) 1>/dev/null 2>&1 -qq -o -j -d $(DIRECTORY) $(SOURCE)',
 	 'cpall' => '$(cp) -pR $(SOURCE)/* $(TARGET)',
@@ -44,16 +44,16 @@ while(my( $name, $invo ) = each %invocations)
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -70,5 +70,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

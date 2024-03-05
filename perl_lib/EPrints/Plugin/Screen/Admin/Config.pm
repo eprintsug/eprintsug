@@ -168,8 +168,10 @@ sub action_delete
 	$frag->appendChild( $repo->html_phrase( "Plugin/Screen/Workflow/Destroy:sure_delete",
 		title => $repo->xml->create_text_node( "$path/$relpath" ),
 	) );
-	my $form = $frag->appendChild( $self->render_form );
-	$form->appendChild( $repo->xhtml->hidden_field( "configfile", $relpath ) );
+
+	my $idsuffix = EPrints::Utils::sanitise_element_id( $relpath . "_delete" );
+	my $form = $frag->appendChild( $self->render_form( $idsuffix ) );
+	$form->appendChild( $repo->xhtml->hidden_field( "configfile", $relpath, "configfile_" . $idsuffix ) );
 	$form->appendChild( $repo->render_action_buttons(
 		confirm => $repo->phrase( "lib/submissionform:action_confirm" ),
 		cancel => $repo->phrase( "lib/submissionform:action_cancel" ),
@@ -461,8 +463,11 @@ sub render_add_file
 
 	my $xhtml = $self->{session}->xhtml;
 
-	my $form = $self->render_form;
-	$form->appendChild( $xhtml->hidden_field( "relpath", $relpath ) );
+	my $idsuffix = EPrints::Utils::sanitise_element_id( $relpath . "_add" );
+
+	my $form = $self->render_form( $idsuffix );
+
+	$form->appendChild( $xhtml->hidden_field( "relpath", $relpath, "relpath_" . $idsuffix ) );
 	my $label = $self->{session}->make_element( "label", for=>"filename_" . $relpath );
         $label->appendChild( $self->html_phrase( "filename_label" ) );
         $form->appendChild( $label );
@@ -514,6 +519,7 @@ sub config_file_to_type
 	return "Workflow" if( $configfile =~ m#^workflows/[a-z]+/[^/]+\.xml$# );
 
 	return "XML" if( $configfile =~ m#\.xml$# );
+	return "XML" if( $configfile =~ m#\.xsl$# );
 
 	return;
 }
@@ -523,16 +529,16 @@ sub config_file_to_type
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -549,5 +555,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

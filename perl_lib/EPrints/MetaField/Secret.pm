@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Secret;
+# EPrints::MetaField::Secret
 #
 ######################################################################
 #
@@ -40,8 +40,7 @@ sub get_property_defaults
 	my( $self ) = @_;
 
 	my %defaults = $self->SUPER::get_property_defaults;
-	$defaults{repeat_secret} = $EPrints::MetaField::FROM_CONFIG;
-	$defaults{text_index} = 0;
+	$defaults{repeat_secret} = 0;
 	$defaults{sql_index} = 0;
 
 	return %defaults;
@@ -101,6 +100,7 @@ sub get_basic_input_elements
 		id => $basename,
 		size => $size,
 		maxlength => $maxlength,
+		autocomplete => "off",
 		'aria-labelledby' => $self->get_labelledby( $basename ),
 		'aria-describedby' => $self->get_describedby( $basename, $one_field_component ) );
 
@@ -116,8 +116,9 @@ sub get_basic_input_elements
 		id => $basename."_confirm",
 		size => $size,
 		maxlength => $maxlength,
+		autocomplete => "off",
 		'aria-labelledby' => $self->get_labelledby( $basename ),
-                'aria-describedby' => $self->get_describedby( $basename, $one_field_component ) );
+		'aria-describedby' => $self->get_describedby( $basename, $one_field_component ) );
 
 	my $label1 = $session->make_element( "div", style=>"margin-right: 4px;" );
 	$label1->appendChild( $session->html_phrase(
@@ -199,16 +200,16 @@ sub to_sax
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -225,5 +226,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

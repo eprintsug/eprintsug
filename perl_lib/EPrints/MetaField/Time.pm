@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Time;
+# EPrints::MetaField::Time
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -303,7 +305,7 @@ sub form_value_basic
 	for(qw( year month day hour minute second ))
 	{
 		my $part = $session->param( $basename."_$_" );
-		last if !EPrints::Utils::is_set( $part ) || ($part == 0 && ( $_ eq "year" || $_ eq "month" || $_ eq "day" ));
+		last if !EPrints::Utils::is_set( $part ) || $part =~ m/[^0-9]/ || ($part == 0 && ( $_ eq "year" || $_ eq "month" || $_ eq "day" ));
 		push @parts, $part;
 	}
 
@@ -409,16 +411,16 @@ L<EPrints::MetaField::Date>.
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -435,5 +437,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

@@ -20,8 +20,8 @@ B<EPrints::XML> - XML Abstraction Module
 
 	my $xml = $repository->xml;
 
-	$doc = $xml->parse_string( $string );
-	$doc = $xml->parse_file( $filename );
+	$doc = $xml->parse_string( $string, %opts );
+	$doc = $xml->parse_file( $filename, %opts );
 	$doc = $xml->parse_url( $url );
 
 	$utf8_string = $xml->to_string( $dom_node, %opts );
@@ -147,7 +147,7 @@ sub parse_file
 	return parse_xml( $filename, $opts{base_path}, $opts{no_expand} );
 }
 
-=item $doc = $xml->parse_url( $url, %opts )
+=item $doc = $xml->parse_url( $url )
 
 Returns an XML document parsed from the content located at $url.
 
@@ -177,7 +177,13 @@ sub create_element
 {
 	my( $self, $name, @attrs ) = @_;
 
+	my $repo = $self->{repository};
 	my $node = $self->{doc}->createElement( $name );
+
+	if ( defined $repo && $repo->can_call( "build_node_attributes" ) ){
+		@attrs = $repo->call( "build_node_attributes", $repo, $name, $node, @attrs );
+	}
+
 	while(my( $key, $value ) = splice(@attrs,0,2))
 	{
 		next if !defined $value;
@@ -1351,16 +1357,16 @@ sub make_document_fragment
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -1377,5 +1383,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

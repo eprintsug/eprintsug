@@ -199,7 +199,17 @@ sub convert_dataobj
 	}
 
 	# note	
-	$data->{bibtex}->{note}	= $dataobj->get_value( "note" ) if $dataobj->exists_and_set( "note" );
+        if( $dataobj->exists_and_set( "note" ) )
+        {
+                if( $data->{bibtex}->{note} )
+                {
+                        $data->{bibtex}->{note} .= "\n\n".$dataobj->get_value( "note" );
+                }
+                else
+                {
+                        $data->{bibtex}->{note} = $dataobj->get_value( "note" );
+                }
+	}
 
 	# number
 	if( $type eq "monograph" )
@@ -356,7 +366,7 @@ sub fix_special_chars
 
 =for COPYRIGHT BEGIN
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/

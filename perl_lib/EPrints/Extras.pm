@@ -56,12 +56,8 @@ sub render_xhtml_field
 	my( $session , $field , $value ) = @_;
 
 	if( !defined $value ) { return $session->make_doc_fragment; }
-        my( %c ) = (
-                ParseParamEnt => 0,
-                ErrorContext => 2,
-                NoLWP => 1 );
 
-		local $SIG{__DIE__};
+	local $SIG{__DIE__};
         my $doc = eval { EPrints::XML::parse_xml_string( "<fragment>".$value."</fragment>" ); };
         if( $@ )
         {
@@ -172,6 +168,57 @@ sub render_lookup_list
 ######################################################################
 =pod
 
+=item $xhtml = EPrints::extras::render_paras( $session, $field, $value );
+
+Render the value in paragraphs rather than one long text string.
+
+Returns an XHTML DOM object of the contents of $value with HTML markup
+to make it into paragraphs.
+
+=cut
+######################################################################
+
+sub render_paras
+{
+    my( $session, $field, $value ) = @_;
+
+    if ( my $render_paras = $session->config( "render_paras" ) )
+    {
+		my $xhtml = &$render_paras( $session, $field, $value );
+		return $xhtml if defined $xhtml;
+    }
+
+    my $frag = $session->make_doc_fragment;
+
+    # normalise newlines
+    $value =~ s/(\r\n|\n|\r)/\n/gs;
+
+    my @paras = split( /\n\n/, $value );
+    foreach my $para( @paras )
+    {
+        $para =~ s/^\s*\n?//;
+        $para =~ s/\n?\s*$//;
+        next if $para eq "";
+
+        my $p = $session->make_element( "p", class=>"ep_field_para" );
+
+        my @lines = split( /\n/, $para );
+        for( my $i=0; $i<scalar( @lines ); $i++ )
+        {
+            $p->appendChild( $session->make_text( $lines[$i] ) );
+            $p->appendChild( $session->make_element( "br" ) ) unless $i == $#lines;
+        }
+
+        $frag->appendChild( $p );
+    }
+
+    return $frag;
+}
+
+
+######################################################################
+=pod
+
 =item $xhtml = EPrints::Extras::render_url_truncate_end( $session, $field, $value )
 
 Hyper link the URL but truncate the end part if it gets longer 
@@ -182,12 +229,12 @@ than 50 characters.
 
 sub render_url_truncate_end
 {
-	my( $session, $field, $value ) = @_;
+	my( $session, $field, $value, $target ) = @_;
 
 	my $len = 50;	
-	my $link = $session->render_link( $value );
+	my $link = $session->render_link( $value, $target );
 	my $text = $value;
-	if( length( $value ) > $len )
+	if( defined( $value ) && length( $value ) > $len )
 	{
 		$text = substr( $value, 0, $len )."...";
 	}
@@ -208,12 +255,12 @@ than 50 characters.
 
 sub render_url_truncate_middle
 {
-	my( $session, $field, $value ) = @_;
+	my( $session, $field, $value, $target ) = @_;
 
 	my $len = 50;	
-	my $link = $session->render_link( $value );
+	my $link = $session->render_link( $value, $target );
 	my $text = $value;
-	if( length( $value ) > $len )
+	if( defined( $value ) && length( $value ) > $len )
 	{
 		$text = substr( $value, 0, $len/2 )."...".substr( $value, -$len/2, -1 );
 	}
@@ -329,16 +376,16 @@ sub render_possible_doi
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -355,5 +402,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 

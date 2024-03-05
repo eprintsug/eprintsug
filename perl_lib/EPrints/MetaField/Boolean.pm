@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Boolean;
+# EPrints::MetaField::Boolean
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -130,6 +132,7 @@ sub get_basic_input_elements
 			readonly => $readonly,
 			onclick => $onclick,
 			class => join(" ", @classes),
+			title => $session->html_phrase( $self->{confid} . "_radio_" . $self->{name} . "_true" ),
 			value => "TRUE",
 			'aria-labelledby' => $basename . "_true_label" );
 		$inputs->{false} = $session->render_noenter_input_field(
@@ -141,6 +144,7 @@ sub get_basic_input_elements
 			readonly => $readonly,
 			onclick => $onclick,
 			class => join(" ", @classes),
+			title => $session->html_phrase( $self->{confid} . "_radio_" . $self->{name} . "_false" ),
 			value => "FALSE",
 			'aria-labelledby' => $basename . "_false_label" );
 		if( !$self->get_property( "required" ) )
@@ -151,6 +155,7 @@ sub get_basic_input_elements
 				name => $basename,
                                 id => $basename . "_unspecified",
                                 class => join(" ", @classes),
+                                title => $self->unspecified_phrase( $session ),
                                 onclick => $onclick,
                                 value => "",
 				'aria-labelledby' => $basename . "_unspecified_label" )
@@ -282,7 +287,6 @@ sub get_property_defaults
 	my( $self ) = @_;
 	my %defaults = $self->SUPER::get_property_defaults;
 	$defaults{input_style} = 0;
-	$defaults{text_index} = 0;
 	$defaults{input_rows} = $EPrints::MetaField::FROM_CONFIG;
 	$defaults{false_first} = 0;
 	return %defaults;
@@ -332,16 +336,16 @@ sub is_set
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -358,5 +362,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=begin LICENSE
 

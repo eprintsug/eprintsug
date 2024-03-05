@@ -66,11 +66,11 @@ $EPrints::XML::LIB_LEN = length("XML::LibXML::");
 
 ##############################################################################
 
-our $PARSER = XML::LibXML->new( expand_entities=>1, load_external_dtd=>1 );
+our $PARSER = XML::LibXML->new( expand_entities=>1, load_ext_dtd=>1 );
 
 sub CLONE
 {
-	$PARSER = XML::LibXML->new( expand_entities=>1, load_external_dtd=>1 );
+	$PARSER = XML::LibXML->new( expand_entities=>1, load_ext_dtd=>1 );
 }
 
 =item $doc = parse_xml_string( $string, %opts )
@@ -105,9 +105,11 @@ sub _parse_url
 {
 	my( $url, $no_expand ) = @_;
 
-	my $doc = $PARSER->parse_file( "$url" );
+	return $PARSER->parse_file( "$url" ) if substr( $url, 0, 6 ) ne "https:";
 
-	return $doc;
+	use LWP::Simple qw(get);
+	my $string = get( $url );
+    	return $PARSER->parse_string( $string );
 }
 
 =item $doc = parse_xml( $filename [, $basepath [, $no_expand]] )

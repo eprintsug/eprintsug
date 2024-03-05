@@ -1,6 +1,6 @@
 ######################################################################
 #
-# EPrints::MetaField::Subject;
+# EPrints::MetaField::Subject
 #
 ######################################################################
 #
@@ -8,6 +8,8 @@
 ######################################################################
 
 =pod
+
+=for Pod2Wiki
 
 =head1 NAME
 
@@ -277,14 +279,13 @@ sub render_value
         @value = ($value);
     }
 
-    my @rendered_values = ();
-
     my $first = 1;
     my $html = $session->make_doc_fragment();
 
     if( $self->{render_quiet} )
     {
         @value = grep { EPrints::Utils::is_set( $_ ) } @value;
+        @value = grep { defined new EPrints::DataObj::Subject( $session, $_ ) } @value;
     }
 
     foreach my $i (0..$#value) ##subjects assigned to the eprint
@@ -340,7 +341,11 @@ sub render_value_sepa_link
 
     my $subject = new EPrints::DataObj::Subject( $session, $value );
 	my $v = $session->make_doc_fragment();
-	return $v unless $subject;
+	unless ( $subject )
+	{
+		$v->appendChild( $self->render_single_value( $session, $value ) ) unless $self->{render_quiet};
+		return $v;
+	}
 	my @paths = $subject->get_paths( $session,  $self->get_property( "top" ) );
 
 	my $first = 1;
@@ -458,6 +463,21 @@ sub get_search_conditions_not_ex
 
 sub get_search_group { return 'subject'; }
 
+sub property
+{
+    my( $self, $property ) = @_;
+
+    my $value = $self->SUPER::property( $property );
+
+    if ( $property eq "top" && ref $value eq "CODE" )
+    {
+        my $func = $value;
+        $value = &$func( $self, $self->{repository} );
+    }
+
+    return $value;
+}
+
 sub get_property_defaults
 {
 	my( $self ) = @_;
@@ -468,7 +488,7 @@ sub get_property_defaults
 	$defaults{showtop} = 0;
 	$defaults{nestids} = 1;
 	$defaults{top} = "subjects";
-	delete $defaults{options}; # inherited but unwanted
+	$defaults{options} = $EPrints::MetaField::UNDEF;
 	return %defaults;
 }
 
@@ -504,16 +524,16 @@ sub tags
 
 =head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=begin COPYRIGHT
 
-Copyright 2022 University of Southampton.
+Copyright 2023 University of Southampton.
 EPrints 3.4 is supplied by EPrints Services.
 
 http://www.eprints.org/eprints-3.4/
 
-=for COPYRIGHT END
+=end COPYRIGHT
 
-=for LICENSE BEGIN
+=begin LICENSE
 
 This file is part of EPrints 3.4 L<http://www.eprints.org/>.
 
@@ -530,5 +550,5 @@ You should have received a copy of the GNU Lesser General Public
 License along with EPrints 3.4.
 If not, see L<http://www.gnu.org/licenses/>.
 
-=for LICENSE END
+=end LICENSE
 
