@@ -8,3 +8,7 @@
 	path = site_lib
 	url = git@github.com:eprintsug/ulcc-site_lib.git
 	branch = 3_4
+[submodule "ingredients/altmetric"]
+	path = ingredients/altmetric
+	url = git@github.com:eprintsug/altmetric.git
+	branch = 3_4
