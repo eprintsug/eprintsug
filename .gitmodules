@@ -40,3 +40,7 @@
 	path = ingredients/reports
 	url = git@github.com:eprintsug/reports.git
 	branch = 3_4
+[submodule "ingredients/rioxx2"]
+	path = ingredients/rioxx2
+	url = git@github.com:eprintsug/rioxx2.git
+	branch = 3_4
