@@ -12,3 +12,7 @@
 	path = ingredients/altmetric
 	url = git@github.com:eprintsug/altmetric.git
 	branch = 3_4
+[submodule "ingredients/datacitedoi"]
+	path = ingredients/datacitedoi
+	url = git@github.com:eprintsug/DataCiteDoi.git
+	branch = 3_4
