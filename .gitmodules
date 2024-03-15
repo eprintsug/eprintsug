@@ -16,3 +16,7 @@
 	path = ingredients/datacitedoi
 	url = git@github.com:eprintsug/DataCiteDoi.git
 	branch = 3_4
+[submodule "ingredients/datesdatesdates"]
+	path = ingredients/datesdatesdates
+	url = git@github.com:eprintsug/datesdatesdates.git
+	branch = 3_4
