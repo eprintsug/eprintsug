@@ -28,3 +28,7 @@
 	path = ingredients/hefce_oa
 	url = git@github.com:eprintsug/hefce_oa.git
 	branch = 3_4
+[submodule "ingredients/irstats2"]
+	path = ingredients/irstats2
+	url = git@github.com:eprintsug/irstats2.git
+	branch = 3_4
