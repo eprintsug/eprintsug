@@ -32,3 +32,7 @@
 	path = ingredients/irstats2
 	url = git@github.com:eprintsug/irstats2.git
 	branch = 3_4
+[submodule "ingredients/orcid_support"]
+	path = ingredients/orcid_support
+	url = git@github.com:eprintsug/orcid_support.git
+	branch = 3_4
