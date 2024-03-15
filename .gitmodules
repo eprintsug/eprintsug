@@ -24,3 +24,7 @@
 	path = ingredients/funders_advanced
 	url = git@github.com:eprintsug/funders_advanced.git
 	branch = 3_4
+[submodule "ingredients/hefce_oa"]
+	path = ingredients/hefce_oa
+	url = git@github.com:eprintsug/hefce_oa.git
+	branch = 3_4
