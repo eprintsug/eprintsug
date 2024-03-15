@@ -20,3 +20,7 @@
 	path = ingredients/datesdatesdates
 	url = git@github.com:eprintsug/datesdatesdates.git
 	branch = 3_4
+[submodule "ingredients/funders_advanced"]
+	path = ingredients/funders_advanced
+	url = git@github.com:eprintsug/funders_advanced.git
+	branch = 3_4
