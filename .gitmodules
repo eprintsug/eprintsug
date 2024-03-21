@@ -3,7 +3,7 @@
 	url = https://github.com/eprintsug/gitaar
 [submodule "ingredients/material"]
 	path = ingredients/material
-	url = https://bitbucket.org/ulcc-art/material.git
+	url = git@bitbucket.org:ulcc-art/material.git
 [submodule "site_lib"]
 	path = site_lib
 	url = git@github.com:eprintsug/ulcc-site_lib.git
