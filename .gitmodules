@@ -44,3 +44,7 @@
 	path = ingredients/rioxx2
 	url = git@github.com:eprintsug/rioxx2.git
 	branch = 3_4
+[submodule "ingredients/simply_advanced_searchbar"]
+	path = ingredients/simply_advanced_searchbar
+    url = https://github.com/eprintsug/simply_advanced_searchbar.git
+	branch = 3_4
