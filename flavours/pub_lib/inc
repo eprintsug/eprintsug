@@ -22,5 +22,5 @@ ingredients/material
 # likley more optional but encouraged
 ingredients/hefce_oa
 ingredients/rioxx2
-#ingredients/jquery
-#site_lib
+ingredients/jquery
+site_lib
