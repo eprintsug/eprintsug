@@ -8,13 +8,19 @@
 # Wildcards are also supported, e.g. to include all ingredients, use "ingredients/*"
 # There is an abbreviated form for "flavours:", "f:", e.g. "f:pub_lib", and similarly "i:" for ingredients.
 
+# repository basics...
 flavours/pub_lib
 ingredients/bazaar
 ingredients/prototypejs
-ingredients/material
-ingredients/hefce_oa
+ingredients/datesdatesdates
+ingredients/funders_advanced
 ingredients/reports
 ingredients/orcid_support
+ingredients/simply_advanced_searchbar
+ingredients/material
+
+# likley more optional but encouraged
+ingredients/hefce_oa
 ingredients/rioxx2
 #ingredients/jquery
 #site_lib
