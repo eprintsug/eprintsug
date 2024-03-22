@@ -48,3 +48,7 @@
 	path = ingredients/simply_advanced_searchbar
     url = https://github.com/eprintsug/simply_advanced_searchbar.git
 	branch = 3_4
+[submodule "ingredients/youtube_import"]
+	path = ingredients/youtube_import
+	url = git@github.com:eprintsug/youtube_import.git
+	branch = 3_4
