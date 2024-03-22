@@ -10,6 +10,7 @@
 
 # repository basics...
 flavours/pub_lib
+ingredients/altmetric
 ingredients/bazaar
 ingredients/prototypejs
 ingredients/datesdatesdates
@@ -18,9 +19,11 @@ ingredients/reports
 ingredients/orcid_support
 ingredients/simply_advanced_searchbar
 ingredients/material
+ingredients/irstats2
 
 # likley more optional but encouraged
 ingredients/hefce_oa
 ingredients/rioxx2
 ingredients/jquery
+ingredients/youtube_importer
 site_lib
