@@ -281,6 +281,7 @@ sub init_from_thread
 	$self->_load_languages();
 	$self->_load_templates();
 	$self->_load_citation_specs();
+	$self->_load_metafield_citation_specs();
 	$self->_load_storage();
 }
 
@@ -560,6 +561,7 @@ sub load_config
 		$self->_load_languages() || return;
 		$self->_load_templates() || return;
 		$self->_load_citation_specs() || return;
+		$self->_load_metafield_citation_specs() || return;
 		$self->_load_storage() || return;
 	}
 
@@ -6076,6 +6078,125 @@ sub auto_timestamp
 	
 	return (stat($auto_file))[9];	
 }
+
+sub _load_metafield_citation_specs
+{
+	my( $self ) = @_;
+
+	$self->{metafield_citations} = {};
+
+    ##first loaded takes priority
+
+	# load repository-specific citations
+	$self->_load_metafield_citation_dir( $self->config( "config_path" )."/metafield_citations" );
+
+    my $flavour = $self->config( "flavour" );
+    my @lib_order = reverse(@{  $self->config("flavours")->{$flavour}  });
+    foreach ( @lib_order )
+    {
+        my $dir = $self->config( "base_path" )."/$_/metafield_citations";
+        if( ! -e $dir )
+        {
+#            $self->log("Could not load citations from $dir.");
+            next;
+        }
+        $self->_load_metafield_citation_dir( $dir );
+    }
+
+	# load system-level citations (won't overwrite)
+	$self->_load_metafield_citation_dir( $self->config( "lib_path" )."/metafield_citations" );
+
+
+#	if( -e $self->config( "base_path" )."/site_lib/citations" )
+#	{
+#		$self->_load_citation_dir( $self->config( "base_path" )."/site_lib/citations" );
+#	}
+
+	return 1;
+}
+
+sub _load_metafield_citation_dir
+{
+	my( $self, $dir ) = @_;
+
+	return unless -e $dir;
+
+	my ($dh,$ddh);
+	opendir( $dh, $dir );
+	my @dirs = ();
+	while( my $fn = readdir( $dh ) )
+	{
+		next if $fn =~ m/^\./;
+		push @dirs,$fn if( -d "$dir/$fn" );
+	}
+	closedir $dh;
+
+	# for each dataset dir
+	foreach my $dsid ( @dirs )
+	{
+		next if !exists $self->{datasets}->{$dsid};
+                opendir( $dh, "$dir/$dsid" );
+		while( my $field = readdir( $dh ) )
+		{
+			next if $field =~ m/^\./;
+			opendir( $ddh, "$dir/$dsid/$field" );
+			while( my $fn = readdir( $ddh ) )
+			{
+				next if $fn =~ m/^\./;
+				my $fileid = substr($fn,0,-4);
+				# prefer .xsl to .xml
+				next if $fn =~ /\.xml$/
+					&& $EPrints::XSLT &&
+					-e "$dir/$dsid/$fileid.xsl";
+				$self->_load_metafield_citation_file(
+					"$dir/$dsid/$field/$fn",
+					$dsid,
+					$field,
+					$fileid
+				);
+			}
+			closedir $ddh;
+		}
+		closedir $dh;
+	}
+
+	return 1;
+}
+
+sub _load_metafield_citation_file
+{
+	my( $self, $file, $dsid, $field, $fileid ) = @_;
+
+	return if defined $self->{metafield_citations}->{$dsid}->{$field}->{$fileid};
+
+	if( !-e $file )
+	{
+		if( $fileid eq "default" )
+		{
+			EPrints::abort( "Default metafield citation file for '$dsid/$field' does not exist. Was expecting a file at '$file'." );
+		}
+		$self->log( "Citation file '$fileid' for '$dsid/$field' does not exist. Was expecting a file at '$file'." );
+		return;
+	}
+
+	if( $file =~ /\.xml$/ )
+	{
+
+		$self->{metafield_citations}->{$dsid}->{$field}->{$fileid} = EPrints::Citation::EPC->new(
+			$file,
+			dataset => $self->dataset( $dsid )
+		);
+	}
+
+	if( $file =~ /\.xsl$/ && $EPrints::XSLT )
+	{
+		$self->{metafield_citations}->{$dsid}->{$field}->{$fileid} = EPrints::Citation::XSL->new(
+			$file,
+			dataset => $self->dataset( $dsid )
+		);
+	}
+}
+
 
 1;		
 

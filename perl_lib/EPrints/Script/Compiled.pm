@@ -331,13 +331,19 @@ sub run_embed_video
 
 sub run_citation
 {
-	my( $self, $state, $object, $citationid ) = @_;
+  my( $self, $state, $object, $citationid ) = @_;
 
-	my $citation = $object->[0]->render_citation( $citationid->[0],
-		finalize => 0
-	);
-
-	return [ $citation, "XHTML" ];
+  my $citation = undef;
+  if( defined $object->[1] && $object->[1]->isa( "EPrints::MetaField::Compound" ) ){
+    # Here we render the citation for a field value (rather than a dataobject)
+    # Maybe one day such fields (creators, funders, projects etc) will be dataobjects too
+    $citation = $object->[1]->render_citation( $citationid->[0], value => $object->[0]); 
+  }else{
+    $citation = $object->[0]->render_citation( $citationid->[0],
+	finalize => 0
+    );
+  }  
+  return [ $citation, "XHTML" ];
 }
 
 sub run_yesno
