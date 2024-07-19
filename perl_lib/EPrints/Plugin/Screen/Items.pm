@@ -163,10 +163,27 @@ sub perform_search
 
 	my $processor = $self->{processor};
 	my $search = $processor->{search};
+	my $session = $self->{session};
 
-	# dirty hack to pass the internal search through to owned_eprints_list
+	# Make sure you have the search order now as reorder expensive when many items
+	my $sort_order = $search->{order};
+	$sort_order = $session->param( "_buffer_order" ) unless $sort_order;
+	unless ( $sort_order )
+	{
+		my $ds = $session->dataset( 'eprint' );
+		my $columns = $self->get_sort_columns( $session, $ds );
+		foreach my $sort_col ( @$columns )
+		{
+			next if !defined $sort_col;
+			my $field = $ds->get_field( $sort_col );
+			next if !defined $field;
+			$sort_order = $field->should_reverse_order ? "-$sort_col" : $sort_col;
+			last;
+		}
+	}	
+
 	my $list = $self->{session}->current_user->owned_eprints_list( %$search,
-		custom_order => $search->{order}
+		custom_order => $sort_order,
 	);
 
 	return $list;
@@ -184,7 +201,7 @@ sub render
 	### Get the items owned by the current user
 	my $list = $self->perform_search;
 
-	my $has_eprints = $user->owned_eprints_list()->count > 0;
+	my $has_eprints = $list->count > 0 || $user->owned_eprints_list()->count > 0;
 
 	if( $repo->get_lang->has_phrase( $self->html_phrase_id( "intro" ), $repo ) )
 	{
@@ -274,16 +291,7 @@ sub render_items
 		#$filter_div->appendChild( $session->make_text( ". " ) );
 	}
 
-	my $columns = $session->current_user->get_value( "items_fields" );
-	@$columns = grep { $ds->has_field( $_ ) } @$columns;
-	if( !EPrints::Utils::is_set( $columns ) )
-	{
-		$columns = [ "eprintid","type","eprint_status","lastmod" ];
-		$session->current_user->set_value( "items_fields", $columns );
-		$session->current_user->commit;
-	}
-
-
+	my $columns = $self->get_sort_columns( $session, $ds );
 	my $len = scalar @{$columns};
 
 	my $final_row = undef;
@@ -426,8 +434,10 @@ sub render_items
 		},
 		rows_after => $final_row,
 	);
+	
+	# Let Paginate know if the list is already ordered, save re-ordering.
+	$opts{custom_order} = $list->{order} if $list->{order};
 	$chunk->appendChild( EPrints::Paginate::Columns->paginate_list( $session, "_buffer", $list, %opts ) );
-
 
 	# Add form
 	my $div = $session->make_element( "div", class=>"ep_columns_add" );
@@ -478,6 +488,20 @@ sub render_items
 	return $chunk;
 }
 
+sub get_sort_columns 
+{
+	my ( $self, $session, $ds ) = @_;
+
+	my $columns = $session->current_user->get_value( "items_fields" );
+	@$columns = grep { $ds->has_field( $_ ) } @$columns;
+	if( !EPrints::Utils::is_set( $columns ) )
+	{
+		$columns = [ "eprintid","type","eprint_status","lastmod" ];
+		$session->current_user->set_value( "items_fields", $columns );
+		$session->current_user->commit;
+	}
+	return $columns;
+}
 
 1;
 

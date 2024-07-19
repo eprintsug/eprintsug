@@ -97,6 +97,28 @@ sub handler
 		return DECLINED;
 	}
 
+	# Certain paths forbidden from certain IPs/subnets (maybe due to (D)DOS).
+	if ( $repository->get_conf( 'restrict_paths' ) && ref( $r ) eq "Apache2::RequestRec" )
+	{
+		my $restrict_paths = $repository->get_conf( 'restrict_paths' );
+		my $ip = $repository->remote_ip;
+		foreach my $restrict_path ( @$restrict_paths )
+		{
+			if ( $uri =~ /^$restrict_path->{path}/ )
+			{
+				foreach my $restrict_ip ( @{$restrict_path->{ips}} )
+				{
+					$restrict_ip =~ s/\./\\./g;
+					$restrict_ip .= '$' if substr( $restrict_ip, -1 ) ne '.'; # avoid blocking 1.2.3.40 when blocking 1.2.3.4.
+					if ( $ip =~ /^$restrict_ip/ )
+					{
+						return FORBIDDEN;
+					}
+				}
+			}
+		}
+	}
+
 	# Non-EPrints paths within our tree
 	my $exceptions = $repository->config( 'rewrite_exceptions' );
 	$exceptions = [] if !defined $exceptions;
@@ -555,6 +577,7 @@ sub handler
 				{
 					my $path = "/archive/" . $eprint->store_path();
 					EPrints::Update::Abstract::update( $repository, $lang, $eprint->id, $path );
+					EPrints::Signposting::signposting( $repository, $r, $eprint );
 					if( $uri =~ m! /$ !x )
 					{
 						$uri .= "index.html";
@@ -581,7 +604,6 @@ sub handler
 			}
 		}
 	}##if use_long_url_format
-
 	if( $uri =~ s! ^$urlpath/id/(?:
 			contents | ([^/]+)(?:/([^/]+)(?:/([^/]+))?)?
 		)$ !!x )

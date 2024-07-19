@@ -18,6 +18,9 @@ sub new
 	
 	$self->{actions} = [qw/ update search newsearch export_redir export /]; 
 
+	# Make sure template can be set from search config (see properties_from).
+    $self->{template} =  $self->{processor}->{template};
+
 	return $self;
 }
 
@@ -36,6 +39,7 @@ sub action_export_redir
 	my( $self ) = @_;
 
 	my $cacheid = $self->{session}->param( "cache" );
+ 	$cacheid = "" unless $cacheid =~ /^\d+$/;
 	my $format = $self->{session}->param( "output" );
 	if( !defined $format )
 	{
@@ -510,7 +514,7 @@ sub render_export_bar
 			$type = "tool" if( $plugin->is_tool );
 			
 			my $url = $self->export_url( $id );
-			my $span = $plugin->render_export_icon( $type, $url );
+			my $span = $plugin->render_export_icon( $type, $url, $id );
 
 			#add class to span so we can use CSS on it
 			$span->setAttribute('class', $span->getAttribute('class') . ' ep_search_' . $id );
