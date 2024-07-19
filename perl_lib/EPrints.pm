@@ -115,7 +115,7 @@ use Carp;
 
 use strict;
 
-our $VERSION = v3.4.5;
+our $VERSION = v3.4.6;
 $conf->{version} = "EPrints ".EPrints->human_version;
 $conf->{versionid} = "eprints-".EPrints->human_version;
 
@@ -348,6 +348,7 @@ use EPrints::Workflow::Stage;
 use EPrints::XML::EPC;
 use EPrints::XHTML;
 use EPrints::Utils;
+use EPrints::Signposting;
 
 # SAX utilities
 use EPrints::XML::SAX::Builder;

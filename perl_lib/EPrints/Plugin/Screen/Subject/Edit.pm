@@ -239,7 +239,8 @@ sub render_subject
 			$current->render_citation( "edit",
 				pindata => {
 					inserts => {
-						n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) )
+						n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) ),
+						a => $xml->create_text_node( $current->count_eprints( $repo->dataset( "archive" ) ) ),
 					},
 				},
 			)
@@ -256,7 +257,8 @@ sub render_subject
 			url => $url,
 			pindata => {
 				inserts => {
-					n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) )
+					n => $xml->create_text_node( $current->count_eprints( $repo->dataset( "eprint" ) ) ),
+					a => $xml->create_text_node( $current->count_eprints( $repo->dataset( "archive" ) ) ),
 				},
 			},
 		) );
@@ -324,14 +326,15 @@ sub render_children
 			class => "ep_columns_cell",
 			style => "text-align: right",
 		) );
-		$td->appendChild( $xml->create_text_node( $child->count_eprints( $repo->dataset( "eprint" ) ) ) );
+		$td->appendChild( $xml->create_text_node( $child->count_eprints( $repo->dataset( "eprint" ) ) . ' (' . $child->count_eprints( $repo->dataset( "archive" ) ) . ')' ) );
+
 		$td = $tr->appendChild( $xml->create_element( "td",
 			class => "ep_columns_cell",
 		) );
 
 		my $idsuffix = EPrints::Utils::sanitise_element_id( $child->id . "_unlink" );
 		my $form = $td->appendChild( $self->render_form( $idsuffix ) );
-		$form->appendChild( $xhtml->hidden_field( childid => $child->id, $idsuffix ) );
+		$form->appendChild( $xhtml->hidden_field( childid => $child->id, id => "childid_" . $idsuffix ) );
 		$form->appendChild( $xhtml->action_button(
 			unlink => $self->phrase( "action_unlink" )
 		) );
