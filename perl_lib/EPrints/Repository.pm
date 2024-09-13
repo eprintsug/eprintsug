@@ -5914,7 +5914,7 @@ sub init_from_request
 	return 1;
 }
 
-my @CACHE_KEYS = qw/ id citations class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
+my @CACHE_KEYS = qw/ id citations metafield_citations class config datasets field_defaults html_templates template_path langs plugins storage template_mtime text_templates types workflows loadtime noise /;
 my %CACHED = map { $_ => 1 } @CACHE_KEYS;
 
 sub cleanup
