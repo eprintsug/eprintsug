@@ -52,3 +52,7 @@
 	path = ingredients/youtube_import
 	url = https://github.com/eprintsug/youtube_import.git
 	branch = 3_4
+[submodule "ingredients/recollect"]
+	path = ingredients/recollect
+    url = https://github.com/eprintsug/recollect.git
+    branch = 3_4
