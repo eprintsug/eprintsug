@@ -56,3 +56,7 @@
 	path = ingredients/recollect
     url = https://github.com/eprintsug/recollect.git
     branch = 3_4
+[submodule "ingredients/collections"]
+	path = ingredients/collections
+    url = https://github.com/eprintsug/collections
+    branch = 3_4
