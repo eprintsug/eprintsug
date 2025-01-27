@@ -1,48 +1,48 @@
 [submodule "gitaar"]
 	path = gitaar
-	url = https://github.com/eprintsug/gitaar
+	url = https://github.com/eprintsug/gitaar.git 
 [submodule "ingredients/material"]
 	path = ingredients/material
-	url = git@bitbucket.org:ulcc-art/material.git
+        url = https://bitbucket.org/ulcc-art/material/git
 [submodule "site_lib"]
 	path = site_lib
-	url = git@github.com:eprintsug/ulcc-site_lib.git
+	url = https://github.com/eprintsug/ulcc-site_lib.git
 	branch = 3_4
 [submodule "ingredients/altmetric"]
 	path = ingredients/altmetric
-	url = git@github.com:eprintsug/altmetric.git
+	url = https://github.com/eprintsug/altmetric.git
 	branch = 3_4
 [submodule "ingredients/datacitedoi"]
 	path = ingredients/datacitedoi
-	url = git@github.com:eprintsug/DataCiteDoi.git
+	url = https://github.com/eprintsug/DataCiteDoi.git
 	branch = 3_4
 [submodule "ingredients/datesdatesdates"]
 	path = ingredients/datesdatesdates
-	url = git@github.com:eprintsug/datesdatesdates.git
+	url = https://github.com/eprintsug/datesdatesdates.git
 	branch = 3_4
 [submodule "ingredients/funders_advanced"]
 	path = ingredients/funders_advanced
-	url = git@github.com:eprintsug/funders_advanced.git
+	url = https://github.com/eprintsug/funders_advanced.git
 	branch = 3_4
 [submodule "ingredients/hefce_oa"]
 	path = ingredients/hefce_oa
-	url = git@github.com:eprintsug/hefce_oa.git
+	url = https://github.com/eprintsug/hefce_oa.git
 	branch = 3_4
 [submodule "ingredients/irstats2"]
 	path = ingredients/irstats2
-	url = git@github.com:eprintsug/irstats2.git
+	url = https://github.com/eprintsug/irstats2.git
 	branch = 3_4
 [submodule "ingredients/orcid_support"]
 	path = ingredients/orcid_support
-	url = git@github.com:eprintsug/orcid_support.git
+	url = https://github.com/eprintsug/orcid_support.git
 	branch = 3_4
 [submodule "ingredients/reports"]
 	path = ingredients/reports
-	url = git@github.com:eprintsug/reports.git
+	url = https://github.com/eprintsug/reports.git
 	branch = 3_4
 [submodule "ingredients/rioxx2"]
 	path = ingredients/rioxx2
-	url = git@github.com:eprintsug/rioxx2.git
+	url = https://github.com/eprintsug/rioxx2.git
 	branch = 3_4
 [submodule "ingredients/simply_advanced_searchbar"]
 	path = ingredients/simply_advanced_searchbar
@@ -50,5 +50,13 @@
 	branch = 3_4
 [submodule "ingredients/youtube_import"]
 	path = ingredients/youtube_import
-	url = git@github.com:eprintsug/youtube_import.git
+	url = https://github.com/eprintsug/youtube_import.git
 	branch = 3_4
+[submodule "ingredients/recollect"]
+	path = ingredients/recollect
+    url = https://github.com/eprintsug/recollect.git
+    branch = 3_4
+[submodule "ingredients/collections"]
+	path = ingredients/collections
+    url = https://github.com/eprintsug/collections
+    branch = 3_4
