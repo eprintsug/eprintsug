@@ -31,12 +31,6 @@ h1, h2, h3, h4 {
 
 .ep_tm_header {
 	background-color: #fff;
-	background-image: url(images/logo_background_light.png);
-	background-repeat: repeat-y;
-}
-.ep_tm_menu, .ep_tm_menu li:hover {
-	background-image: url(images/bar_glass.png) ;
-	background-position: 0px 5px;
 }
 .ep_tm_footer {
 	border-color: #204f76;
@@ -57,11 +51,6 @@ h1, h2, h3, h4 {
 .ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter, .ep_toolbox_title {
 	color: #606060;
 }
-.ep_tm_searchbar, .ep_columns_title, td.ep_columns_alter {
-	background-color: #ccc;
-	background-image: url(images/bar_24px.png);
-	background-repeat: repeat-x;
-}
 .ep_tm_searchbarbox {
 	border-color: #606060;
 }
@@ -80,7 +69,6 @@ h1, h2, h3, h4 {
 
 .ep_form_action_button, .ep_form_internal_button, .ep_tm_searchbarbutton, .ep_blister_node_selected {
 	border-color: #5b97c7 #13324a #13324a #5287b3;
-	background-image: url(images/bar_12px.png);
 	background-color: #1f4f76;
 	color: white;
 }
@@ -94,7 +82,6 @@ h1, h2, h3, h4 {
 .ep_blister_node {
 	border-color: #cccccc;
 	background-color: #e8e8ff;
-	background-image: url(images/bar_solid_12px.png);
 	color: #000000;
 }
 .ep_blister_node:active {
@@ -104,27 +91,6 @@ h1, h2, h3, h4 {
 /* summary.css surround.css */
 
 .ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar
-,.ep_tab_panel
-,.ep_toolbox_content /* toolbox.css */
-,.ep_upload_doc /* upload.css */
-,.ep_search_buttons, .ep_search_controls, .ep_search_controls_bottom /* search.css */
-,.ep_view_group_by /* view.css */
-{
-	background-color: #e8e8ff;
-}
-.ep_summary_box_title, .ep_sr_title_bar, .ep_sr_collapse_bar {
-	background-image: url(images/bar_solid_12px.png);
-	background-repeat: repeat-x;
-}
-.ep_sr_content, .ep_summary_box_body,
-.ep_tab_panel,
-.ep_toolbox_content /* toolbox.css */
-,.ep_upload_doc /* upload.css */
-{
-	background-image: url(images/bar_solid_24px.png);
-	background-repeat: repeat-x;
-}
-.ep_summary_box_title, .ep_summary_box_body, .ep_sr_title_bar, .ep_sr_content, .ep_sr_collapse_bar
 ,.ep_tab_panel, .ep_tab_bar li, .ep_tab_bar li a
 ,.ep_toolbox_content /* toolbox.css */
 ,.ep_upload_doc /* upload.css */
@@ -132,16 +98,9 @@ h1, h2, h3, h4 {
 	border-color: #ccc;
 }
 
-/* tabs.css */
-
-.ep_tab_bar li a {
-	background-image: url(images/bar_solid_24px.png);
-	background-repeat: repeat-x;
-}
-
 /* unselected tab */
 .ep_tab_bar li a {
-	background-color: #bbf;
+	background-color: #f5f5f5;
 }
 
 /* selected tab */
@@ -154,7 +113,6 @@ h1, h2, h3, h4 {
 th.ep_title_row
 {
 	border-color: #808080;
-	background-image: url(images/bar_24px.png);
 	background-color: #ccc;
 	color: #333;
 }
@@ -170,11 +128,6 @@ td.ep_row {
 }
 
 /* messages.css */
-
-.ep_msg_message_content, .ep_msg_warning_content, .ep_msg_error_content, .ep_msg_other_content {
-	background-image: url(images/bar_solid_48px.png);
-	background-repeat: repeat-x;
-}
 
 .ep_msg_message_content {
 	background-color: #80ff80;
@@ -208,5 +161,4 @@ td.ep_columns_cell {
 ,.ep_view_group_by /* view.css */
 {
 	border-color: #cccccc;
-	background-image: url(images/bar_24px.png);
 }
