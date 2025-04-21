@@ -60,3 +60,7 @@
 	path = ingredients/collections
     url = https://github.com/eprintsug/collections
     branch = 3_4
+[submodule "ingredients/ref_support"]
+	path = ingredients/ref_support
+    url = https://github.com/eprints/ref_support.git
+    branch = 3_4
