@@ -54,6 +54,14 @@ sub render_value
 {
         my( $self, $session, $value, $alllangs, $nolink, $object ) = @_;
 
+        # Make use of the nolink property, which can be applied in citations if we want to
+        # suppress a link to the browse views when one is added via eprint_fields.pl
+        if($self->get_property( "render_custom" ) eq "nolink")
+        {
+                $nolink = 1;
+        }
+
+
         if( defined $self->{render_value} )
         {
                 return $self->call_property( "render_value",
@@ -65,12 +73,6 @@ sub render_value
                         $object );
         }
 
-        # Make use of the nolink property, which can be applied in citations if we want to
-        # suppress a link to the browse views when one is added via eprint_fields.pl
-        if($self->get_property( "render_custom" ) eq "nolink")
-        {
-                $nolink = 1;
-        }
         return $self->render_value_actual( $session, $value, $alllangs, $nolink, $object );
 }
 
