@@ -189,6 +189,11 @@ sub validate
 	return ();
 }
 
+sub validate_required
+{
+	return ();
+}
+
 
 # Useful parameter methods
 

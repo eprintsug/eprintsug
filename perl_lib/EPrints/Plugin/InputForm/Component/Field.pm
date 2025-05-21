@@ -166,6 +166,62 @@ sub validate
 
 =pod
 
+=item @fields = $fieldcomponent->validate_required()
+
+Returns a list of fieldnames that are required but haven't been filled in.
+Used by material ingredient to highlight missing fields
+
+=cut
+
+sub validate_required
+{
+	my( $self ) = @_;
+
+	my $field = $self->{config}->{field};
+	
+	my $for_archive = defined($field->{required}) &&
+		$field->{required} eq "for_archive";
+	
+	my @fieldnames;
+
+	# field requires a value
+	if( $self->is_required() && !$self->{dataobj}->is_set( $field->{name} ) )
+	{
+		push @fieldnames, $field->{name};
+	}
+	
+	# field sub-fields are required
+	if( $field->isa( "EPrints::MetaField::Compound" ) )
+	{
+		SUB_FIELD: foreach my $sub_field (@{$field->property( "fields_cache" )})
+		{
+			next if !$sub_field->property( "required" );
+
+			my $value = $sub_field->get_value( $self->{dataobj} );
+
+			if( !$sub_field->property( "multiple" ) )
+			{
+				next SUB_FIELD if EPrints::Utils::is_set( $value );
+			}
+			else
+			{
+				my $set = 1;
+				for(@$value)
+				{
+					$set &&= EPrints::Utils::is_set( $_ );
+				}
+				next SUB_FIELD if $set;
+			}
+
+			push @fieldnames, $field->{name};
+		}
+	}
+
+	return @fieldnames;
+}
+
+=pod 
+
 =item $bool = $component->is_required()
 
 returns true if this component is required to be completed before the
