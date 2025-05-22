@@ -208,21 +208,6 @@ sub validate
 	return @problems;
 }
 
-# return a list of fieldnames which are required but haven't been provided
-# used by material ingredient to highlight missing fields
-sub validate_required
-{
-	my( $self ) = @_;
-	
-	my @fieldnames = ();
-	foreach my $component (@{$self->{components}})
-	{
-		push @fieldnames, $component->validate_required();
-	}
-	return @fieldnames;
-}
-
-
 # return an array of problems
 sub update_from_form
 {
