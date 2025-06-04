@@ -22,7 +22,6 @@ if( !$session->current_user->has_role( 'admin' ) )
 my $cgi = CGI->new;
 
 my $template_file = "/www/monthly-reports/templates/new_report.html";
-$template_file = "/home/vagrant/monthly-reports/templates/new_report.html";
 
 # Output HTML
 open(my $tfh, '<', $template_file) or die "Cannot open $template_file: $!";
