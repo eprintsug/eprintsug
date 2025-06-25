@@ -72,3 +72,7 @@
 	path = ingredients/Simple-Portfolio
 	url = https://github.com/eprintsug/Simple-Portfolio.git
     branch = 3_4
+[submodule "ingredients/ref2014"]
+	path = ingredients/ref2014
+    url = https://github.com/eprintsug/ref2014
+    branch = 3_4
