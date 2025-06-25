@@ -68,3 +68,7 @@
 	path = ingredients/irus
     url = https://github.com/eprintsug/irus.git
     branch = 3_4
+[submodule "ingredients/Simple-Portfolio"]
+	path = ingredients/Simple-Portfolio
+	url = https://github.com/eprintsug/Simple-Portfolio.git
+    branch = 3_4

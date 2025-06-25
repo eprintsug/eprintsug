@@ -20,7 +20,6 @@ ingredients/orcid_support
 ingredients/simply_advanced_searchbar
 ingredients/material
 ingredients/irstats2
-ingredients/recollect
 ingredients/irus
 
 # likley more optional but encouraged
@@ -29,4 +28,11 @@ ingredients/rioxx2
 ingredients/jquery
 ingredients/youtube_import
 ingredients/datacitedoi
+ingredients/Simple-Portfolio
+
+# very optional
+#ingredients/ref_support
+#ingredients/recollect
+
+# and finally...
 site_lib
