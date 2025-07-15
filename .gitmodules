@@ -76,3 +76,7 @@
 	path = ingredients/ref2014
     url = https://github.com/eprintsug/ref2014
     branch = 3_4
+[submodule "ingredients/RepoLink"]
+	path = ingredients/RepoLink
+    url = https://github.com/eprintsug/RepoLink
+    branch = 3_4
