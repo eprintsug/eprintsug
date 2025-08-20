@@ -1391,11 +1391,13 @@ sub send_out_editor_alert
 
 		my $matches = $self->{session}->make_doc_fragment;
 
+        my $style = my $style = defined $self->{session}->config( 'citation_default', 'eprint', 'for_email' ) ? $self->{session}->config( 'citation_default', 'eprint', 'for_email' ) : 'default';
+
 		$list->map( sub {
 			my( $session, $dataset, $eprint ) = @_;
 
 			my $p = $self->{session}->make_element( "p" );
-			$p->appendChild( $eprint->render_citation_link_staff );
+			$p->appendChild( $eprint->render_citation_link_staff( $style ) );
 			$matches->appendChild( $p );
 		} );
 
