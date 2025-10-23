@@ -83,3 +83,7 @@
 [submodule "ingredients/ref2029"]
 	path = ingredients/ref2029
 	url = https://github.com/eprintsug/ref2029.git
+[submodule "ingredients/coversheets-latex"]
+	path = ingredients/coversheets-latex
+    url = https://github.com/eprintsug/coversheets-latex.git
+    branch = 3_4
