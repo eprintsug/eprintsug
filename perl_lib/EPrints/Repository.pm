@@ -2075,22 +2075,22 @@ sub get_store_dir
 	if( $error )
 	{
 		# Argh! Running low on disk space overall.
-		$self->log(<<END);
-*** URGENT ERROR
-*** Out of disk space.
-*** All available drives have under $errorsize kilobytes remaining.
-*** No new eprints may be added until this is rectified.
-END
-		$self->mail_administrator( "lib/eprint:diskout_sub", "lib/eprint:diskout" );
+        #$self->log(<<END);
+#*** URGENT ERROR
+#*** Out of disk space.
+#*** All available drives have under $errorsize kilobytes remaining.
+#*** No new eprints may be added until this is rectified.
+#END
+        #$self->mail_administrator( "lib/eprint:diskout_sub", "lib/eprint:diskout" );
 	}
 	# Warn the administrator if we're low on space
 	elsif( $warn )
 	{
-		$self->log(<<END);
-Running low on diskspace.
-All available drives have under $warnsize kilobytes remaining.
-END
-		$self->mail_administrator( "lib/eprint:disklow_sub", "lib/eprint:disklow" );
+#		$self->log(<<END);
+#Running low on diskspace.
+#All available drives have under $warnsize kilobytes remaining.
+#END
+        #$self->mail_administrator( "lib/eprint:disklow_sub", "lib/eprint:disklow" );
 	}
 
 	# return the store with the most space available
