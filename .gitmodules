@@ -88,7 +88,6 @@
     url = https://github.com/eprintsug/coversheets-latex.git
     branch = 3_4
 [submodule "ingredients/openAIRE"]
-	path = ingredients/openAIRE
-  url = https://github.com/eprintsug/EPrintsOpenAIRE
-  branch = 3_4
-
+    path = ingredients/openAIRE
+    url = https://github.com/eprintsug/EPrintsOpenAIRE
+    branch = 3_4
