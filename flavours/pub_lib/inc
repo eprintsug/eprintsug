@@ -36,6 +36,8 @@ ingredients/openAIRE
 #ingredients/ref_support
 #ingredients/recollect
 #ingredients/RepoLink
+#ingredients/sd_goals
+#ingredients/orcid_support_advance
 
 # and finally...
 site_lib

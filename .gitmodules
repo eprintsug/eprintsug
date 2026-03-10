@@ -91,3 +91,7 @@
     path = ingredients/openAIRE
     url = https://github.com/eprintsug/EPrintsOpenAIRE
     branch = 3_4
+[submodule "ingredients/orcid_support_advance"]
+	path = ingredients/orcid_support_advance
+    url = https://github.com/eprints/orcid_support_advance
+    branch = 3_4
