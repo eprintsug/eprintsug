@@ -18,6 +18,7 @@ ingredients/funders_advanced
 ingredients/reports
 ingredients/orcid_support
 ingredients/simply_advanced_searchbar
+ingredients/openAIRE
 ingredients/material
 ingredients/irstats2
 ingredients/irus
@@ -29,7 +30,6 @@ ingredients/jquery
 ingredients/youtube_import
 ingredients/datacitedoi
 ingredients/Simple-Portfolio
-ingredients/openAIRE
 
 # very optional
 #ingredients/ref2014
@@ -37,7 +37,7 @@ ingredients/openAIRE
 #ingredients/recollect
 #ingredients/RepoLink
 #ingredients/sd_goals
-#ingredients/orcid_support_advance
+ingredients/orcid_support_advance
 
 # and finally...
 site_lib
