@@ -95,3 +95,8 @@
 	path = ingredients/orcid_support_advance
     url = https://github.com/eprints/orcid_support_advance
     branch = 3_4
+[submodule "ingredients/sd_goals"]
+	path = ingredients/sd_goals
+	url = https://github.com/eprintsug/sd_goals.git
+	branch = reports_3_4
+
