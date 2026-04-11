@@ -99,4 +99,7 @@
 	path = ingredients/sd_goals
 	url = https://github.com/eprintsug/sd_goals.git
 	branch = reports_3_4
-
+[submodule "ingredients/creators_roles"]
+	path = ingredients/creators_roles
+	url = https://github.com/eprintsug/creators_roles.git
+	branch = 3_4
