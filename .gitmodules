@@ -103,3 +103,6 @@
 	path = ingredients/creators_roles
 	url = https://github.com/eprintsug/creators_roles.git
 	branch = 3_4
+[submodule "ingredients/dark_archive"]
+	path = ingredients/dark_archive
+	url = https://github.com/eprintsug/dark_archive
