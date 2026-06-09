@@ -106,3 +106,6 @@
 [submodule "ingredients/dark_archive"]
 	path = ingredients/dark_archive
 	url = https://github.com/eprintsug/dark_archive
+[submodule "ingredients/metatags"]
+	path = ingredients/metatags
+	url = https://github.com/eprints/metatags
