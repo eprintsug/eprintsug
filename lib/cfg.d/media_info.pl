@@ -55,6 +55,9 @@ $c->add_trigger( EP_TRIGGER_MEDIA_INFO, sub {
 	return 0 if $filename =~ /.(docx|pptx|xlsx)$/i;
 	return 0 if $filename =~ /\.bib$/; # BibTeX
 
+  # file sometimes thinks csvs are plaintext
+  return 0 if $filename =~ /\.csv$/;
+
 	if( open(my $fh, "file -b -i ".quotemeta($filepath)."|") )
 	{
 		my $output = <$fh>;
