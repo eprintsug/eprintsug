@@ -15,7 +15,7 @@
 [submodule "ingredients/datacitedoi"]
 	path = ingredients/datacitedoi
 	url = https://github.com/eprintsug/DataCiteDoi.git
-	branch = 3_4
+	branch = reserve_fix
 [submodule "ingredients/datesdatesdates"]
 	path = ingredients/datesdatesdates
 	url = https://github.com/eprintsug/datesdatesdates.git
@@ -95,3 +95,17 @@
 	path = ingredients/orcid_support_advance
     url = https://github.com/eprints/orcid_support_advance
     branch = 3_4
+[submodule "ingredients/sd_goals"]
+	path = ingredients/sd_goals
+	url = https://github.com/eprintsug/sd_goals.git
+	branch = reports_3_4
+[submodule "ingredients/creators_roles"]
+	path = ingredients/creators_roles
+	url = https://github.com/eprintsug/creators_roles.git
+	branch = 3_4
+[submodule "ingredients/dark_archive"]
+	path = ingredients/dark_archive
+	url = https://github.com/eprintsug/dark_archive
+[submodule "ingredients/metatags"]
+	path = ingredients/metatags
+	url = https://github.com/eprints/metatags
