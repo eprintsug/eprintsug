@@ -21,10 +21,9 @@ ingredients/simply_advanced_searchbar
 ingredients/openAIRE
 ingredients/material
 ingredients/irstats2
-ingredients/irus
-ingredients/metatags
 
 # likley more optional but encouraged
+ingredients/metatags
 ingredients/hefce_oa
 ingredients/rioxx2
 ingredients/jquery
@@ -35,10 +34,11 @@ ingredients/Simple-Portfolio
 # very optional
 #ingredients/ref2014
 #ingredients/ref_support
-#ingredients/recollect
+ingredients/recollect
 #ingredients/RepoLink
 #ingredients/sd_goals
 #ingredients/orcid_support_advance
+ingredients/pure_datasets
 
 # and finally...
 site_lib
