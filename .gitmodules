@@ -105,3 +105,6 @@
 [submodule "ingredients/metatags"]
 	path = ingredients/metatags
 	url = https://github.com/eprints/metatags
+[submodule "ingredients/richtext"]
+	path = ingredients/richtext
+	url = https://github.com/eprints/richtext.git
