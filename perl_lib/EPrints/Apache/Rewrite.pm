@@ -593,8 +593,6 @@ sub handler
 						$uri .= "index.html";
 					}
 
-					$r->filename( $eprint->_htmlpath( $lang ) . $uri );
-
                     if ($uri !~ m!^/index.html$!)
 					{
                     	# EPrints is being too generous with URL resolution...
@@ -605,7 +603,9 @@ sub handler
                         return NOT_FOUND;
                     }
 
-					if( $uri =~ /\.html$/ )
+					$r->filename( $eprint->_htmlpath( $lang ) . $uri );
+
+                    if( $uri =~ /\.html$/ )
 					{
 						$r->pnotes( eprint => $eprint );
 						$r->handler('perl-script');
@@ -795,6 +795,17 @@ sub handler
 				{
 					$uri .= "index.html";
 				}
+ 
+                if ($uri !~ m!^/index.html$!)
+                {
+                    # EPrints is being too generous with URL resolution...
+                    # We think that we should return a 404 here to stop valid URLs that have
+                    # nonsense appended to them from resolving the valid section of the URL
+                    # AND then spawning a sub-request that can cause a seg-fault
+                    EPrints::Apache::AnApache::send_status_line( $r, 404, "Not Found" );
+                    return NOT_FOUND;
+                }
+
 				$r->filename( $eprint->_htmlpath( $lang ) . $uri );
 
 				if( $uri =~ /\.html$/ )
