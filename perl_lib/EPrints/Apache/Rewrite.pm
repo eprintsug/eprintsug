@@ -913,19 +913,24 @@ sub handler
 	}   
 
     # just looking for html pages at this point
-    # but check they also exist! Prevents subrequests leading to segfaults 
-	if( $r->filename =~ /\.html$/ && -f $r->filename )
+    if( $r->filename =~ /\.html$/ )
 	{
-		my $ua = $r->headers_in->{'User-Agent'};
-		if( $ua && $ua =~ /MSIE ([0-9]{1,}[\.0-9]{0,})/ && $1 >= 8.0 )
-		{
-			$r->headers_out->{'X-UA-Compatible'} = "IE=9";
-		}
+        # confirm this is a genuine static page with a .page that the template handler won't decline
+        # if we leave this until the template handler then we get a subrequest when given a nonsense URL
+        my $filename = $r->filename;
+        $filename =~ s/\.html$//;
+        if( -r $filename.".page" )
+        {
+    		my $ua = $r->headers_in->{'User-Agent'};
+    		if( $ua && $ua =~ /MSIE ([0-9]{1,}[\.0-9]{0,})/ && $1 >= 8.0 )
+	    	{
+    			$r->headers_out->{'X-UA-Compatible'} = "IE=9";
+	    	}
 
-		$r->handler('perl-script');
-		$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
-	}
-
+		    $r->handler('perl-script');
+    		$r->set_handlers(PerlResponseHandler => [ 'EPrints::Apache::Template' ] );
+	    }
+    }
 	return OK;
 }
 
