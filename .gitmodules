@@ -110,4 +110,7 @@
 	url = https://github.com/eprints/richtext.git
 [submodule "ingredients/eprints_matomo"]
 	path = ingredients/eprints_matomo
-	url = https://github.com/eprintsug/EPrints-Matomo
+  url = https://github.com/eprintsug/EPrints-Matomo
+[submodule "ingredients/practice_research_display"]
+  path = ingredients/practice_research_display
+  url = https://github.com/eprintsug/practice_research_display
